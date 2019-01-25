@@ -1,7 +1,18 @@
 [package]
-name = "os"
+name = "advos"
 version = "0.1.0"
-authors = ["Jacob Rutherford"]
+authors = ["Michael Goin <mgoin@vols.utk.edu>"]
 edition = "2018"
+
+[profile.dev]
+lto = false
+panic = "abort"
+
+[profile.release]
+lto = true
+panic = "unwind"
+
+[lib]
+crate-type = ["staticlib"]
 
 [dependencies]
