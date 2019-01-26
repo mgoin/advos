@@ -149,7 +149,7 @@ SECTIONS
   } >ram AT>ram :ram
 
   . = ALIGN(8);
-  PROVIDE( _end = . );
+  PROVIDE( __bss_end = . );
   PROVIDE( end = . );
 
   .stack ORIGIN(ram) + LENGTH(ram) - __stack_size :

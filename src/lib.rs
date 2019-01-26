@@ -20,3 +20,10 @@ fn abort() -> !
 fn panic(info: &core::panic::PanicInfo) -> ! {
     abort()
 }
+
+#[no_mangle]
+fn main() {
+    let x = 0;
+    let y = 1;
+    let z = x + y;
+}
