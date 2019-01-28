@@ -9,8 +9,8 @@ AS=$(CROSS)-as
 GDB=$(CROSS)-gdb
 
 LDSFILE=lds/hifive.lds
-ASFLAGS=-march=rv32ima -mabi=ilp32 -O0 -g
-LDFLAGS=-T$(LDSFILE) -march=rv32ima -mabi=ilp32 -O0 -g -nostartfiles -nostdinc -ffreestanding -nostdlib -Ltarget/$(TARGET)/debug -L.
+ASFLAGS=-march=rv32ima -mabi=ilp32 -Og -g
+LDFLAGS=-T$(LDSFILE) -march=rv32ima -mabi=ilp32 -Og -g -nostartfiles -nostdinc -ffreestanding -nostdlib -Ltarget/$(TARGET)/debug -L.
 OUT=$(NAME).elf
 
 QEMUARGS=-machine sifive_e -nographic -serial mon:stdio -kernel $(OUT)

@@ -14,6 +14,9 @@ _start:
 	la	gp, __global_pointer$
 	la	sp, _sp
 	//Copy data section from flash memory into RAM
+	//_data_lma - This is the memory address in the FLASH memory you need to copy FROM.
+	//_data - The start of the data section in RAM.
+	//_edata - The end of the data section in RAM.
 	la	a0, _data_lma
 	la	a1, _data
 	la	a2, _edata
@@ -22,9 +25,9 @@ _start:
 	// t0 = *a0
 	lw	t0, 0(a0)
 	// *a1 = t0
-	sw	t0, 0(a0)
+	sw	t0, 0(a1)
 	addi	a0, a0, 4
-	addi	a0, a1, 4
+	addi	a1, a1, 4
 	bltu	a1, a2, 1b
 2:
 	//Clear the BSS. The BSS section must be all 0s
