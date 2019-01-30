@@ -2,6 +2,8 @@
 //We are not permitted to use the standard library since it isn't written for our operating system
 #![no_std]
 
+mod uart;
+
 //The eh_personality tells our program how to unwind. We aren't going to write that, so tell
 //it to do nothing.
 #[lang = "eh_personality"]
@@ -26,4 +28,5 @@ fn main() {
     let x = 0;
     let y = 1;
     let z = x + y;
+    let c = uart::init();
 }
