@@ -1,8 +1,19 @@
 #![feature(panic_info_message,allocator_api,asm,lang_items,compiler_builtins_lib)]
 //We are not permitted to use the standard library since it isn't written for our operating system
 #![no_std]
+#![allow(dead_code,unused_variables)]
 
 mod uart;
+
+macro_rules! print {
+    ($fmt:expr) => (for c in $fmt.chars() {uart::writechar(c as u8).unwrap()});
+}
+
+macro_rules! println {
+	() => (print!("\r\n"));
+    ($fmt:expr) => (print!(concat!($fmt, "\r\n")));
+//	($fmt:expr, $( $x:expr ),+) => (print!(concat!($fmt, "\r\n"), $($x)+));
+}
 
 //The eh_personality tells our program how to unwind. We aren't going to write that, so tell
 //it to do nothing.
@@ -13,7 +24,7 @@ pub extern fn eh_personality() {}
 #[no_mangle]
 fn abort() -> !
 {
-   loop {}
+   loop {wait();}
 }
 
 //Panic handler will execute whenever our rust code panics. -> ! means that this function won't return,
@@ -25,8 +36,11 @@ fn panic(info: &core::panic::PanicInfo) -> ! {
 
 #[no_mangle]
 fn main() {
-    let x = 0;
-    let y = 1;
-    let z = x + y;
-    let c = uart::init();
+    // Intialize UART for reading/writing
+    uart::init().unwrap();
+
+    println!("Hello world!");
+
+    // Infinite loop
+    loop {}
 }
