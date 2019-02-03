@@ -27,38 +27,39 @@ const IE:     u64 = UART_ADDR + 0x010; // UART interrupt enable
 const IP:     u64 = UART_ADDR + 0x014; // UART interrupt pending
 const DIV:    u64 = UART_ADDR + 0x018; // Baud rate divisor
 
+use core::ptr::{read_volatile, write_volatile};
 
-#[no_mangle]
-pub fn init() -> Result<(), ()> {
+pub fn init() -> () {
     let div = DIV as *mut u32;
     let txctrl = TXCTRL as *mut u32;
     let rxctrl = RXCTRL as *mut u32;
-
     unsafe {
-        *div = DIVISOR as u32 & 0x0000_FFFF;
-        *txctrl = *txctrl | 1;
-        *rxctrl = *rxctrl | 1;
+        write_volatile(div, DIVISOR as u32 & 0x0000_FFFF);
+        write_volatile(txctrl, read_volatile(txctrl) | 1);
+        write_volatile(rxctrl, read_volatile(rxctrl) | 1);
     }
-
-    return Ok(());
 }
 
 pub fn readchar() -> Option<u8> {
     let rxdata = RXDATA as *mut u32;
+    let r: u32;
     unsafe {
-        // don't block in read
-        if *rxdata >> 31 == 1 { None } 
-        else { Some(*rxdata as u8) }
+        r = read_volatile(rxdata);
+    }
+    if r >> 31 == 1 { None } 
+    else { Some(r as u8) }
+}
+
+pub fn writechar(byte: u8) -> () {
+    let txdata = TXDATA as *mut u32;
+    unsafe {
+        let mut t: u32;
+        // Block until the write FIFO has space
+        loop {
+            t = read_volatile(txdata);
+            if t >> 31 == 0 { break; }
+        }
+        write_volatile(txdata, (t & 0x0000) | byte as u32);
     }
 }
 
-pub fn writechar(byte: u8) -> Result<(), ()> {
-    let txdata = TXDATA as *mut u32;
-    unsafe {
-        // reading txdata register is non-destructive so 
-        // just have a loop running until we can write
-        while *txdata >> 31 == 1 {}
-        *txdata = (*txdata & 0x0000) | byte as u32;
-    }
-    Ok(())
-}
