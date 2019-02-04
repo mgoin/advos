@@ -10,8 +10,12 @@ macro_rules! print {
     ($fmt:expr) => ( for c in $fmt.chars() {uart::writechar(c as u8)} );
 }
 
+macro_rules! print_char {
+    ($fmt:expr) => ( uart::writechar($fmt as u8) );
+}
+
 macro_rules! println {
-	() => ( print!("\r\n") );
+    () => ( print!("\r\n") );
     ($fmt:expr) => ( print!(concat!($fmt, "\r\n")) );
 //	($fmt:expr, $( $x:expr ),+) => (print!(concat!($fmt, "\r\n"), $($x)+));
 }
