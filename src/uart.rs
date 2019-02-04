@@ -46,7 +46,7 @@ pub fn readchar() -> Option<u8> {
     unsafe {
         r = read_volatile(rxdata);
     }
-    if r >> 31 == 1 { None } 
+    if r >> 31 == 1 { None }
     else { Some(r as u8) }
 }
 
