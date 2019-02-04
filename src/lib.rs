@@ -23,7 +23,7 @@ fn panic(info: &core::panic::PanicInfo) -> ! {
     abort()
 }
 
-const CLOCK_FREQ: u64 = 65_000_000; // Hz
+const CLOCK_FREQ: u64 = 65_000_000; // QEMU Frequency
 const BAUD_RATE: u64 = 115_200;
 const DIVISOR: u64 = (CLOCK_FREQ / BAUD_RATE) - 1;
 
@@ -78,16 +78,34 @@ pub fn writechar(byte: u8) -> () {
     }
 }
 
+macro_rules! print {
+    ($fmt:expr) => ( for c in $fmt.chars() {writechar(c as u8)} );
+}
+
+macro_rules! print_char {
+    ($fmt:expr) => ( writechar($fmt as u8) );
+}
+
+macro_rules! println {
+    () => ( print!("\n") );
+    ($fmt:expr) => ( print!(concat!($fmt, "\n")) );
+}
+
 #[no_mangle]
 fn main() {
     // Intialize UART
     init();
 
+    // Test writing to stdout using UART
     println!("Hello world!");
+    println!("This means we can write to stdout using UART!");
 
     loop {
+        // Test reading from stdin using UART
         if let Some(c) = readchar() {
-            println!("Some");
+            print!("You wrote '");
+            print_char!(c);
+            println!("' to stdin.");
         }
     }
 }
