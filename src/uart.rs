@@ -62,3 +62,4 @@ pub fn writechar(byte: u8) -> () {
         write_volatile(txdata, (t & 0x0000) | byte as u32);
     }
 }
+
