@@ -15,8 +15,8 @@ macro_rules! print_char {
 }
 
 macro_rules! println {
-    () => ( print!("\r\n") );
-    ($fmt:expr) => ( print!(concat!($fmt, "\r\n")) );
+    () => ( print!("\n") );
+    ($fmt:expr) => ( print!(concat!($fmt, "\n")) );
 //	($fmt:expr, $( $x:expr ),+) => (print!(concat!($fmt, "\r\n"), $($x)+));
 }
 
