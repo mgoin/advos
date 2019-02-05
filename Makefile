@@ -32,8 +32,9 @@ $(OUT): Makefile $(ASM_OBJECTS) $(RUST_OBJECT) $(LDSFILE)
 	$(CC) $(ASFLAGS) -c $< -o $@
 
 $(RUST_OBJECT): Makefile $(RUST_SOURCES)
-	$(XARGO) build --target=$(TARGET)
+	$(XARGO) build --target=$(TARGET) $(FEATURES)
 
+qemu: FEATURES=--features qemu
 qemu: $(OUT)
 	$(QEMU) $(QEMUARGS)
 
@@ -43,6 +44,6 @@ gdb: $(OUT)
 
 .PHONY: clean
 
-clean: 
+clean:
 	$(XARGO) clean
 	rm -fr $(OUT) $(ASM_OBJECTS)

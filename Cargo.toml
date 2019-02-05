@@ -16,3 +16,9 @@ panic = "unwind"
 crate-type = ["staticlib"]
 
 [dependencies]
+
+[features]
+
+default = []
+qemu = []
+hifive = []
