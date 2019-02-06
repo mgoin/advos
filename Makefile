@@ -23,6 +23,8 @@ RUST_OBJECT=target/$(TARGET)/debug/lib$(NAME).a
 
 LIBS=-l$(NAME) -lgcc
 
+
+all:FEATURES=--features hifive
 all: $(OUT)
 
 $(OUT): Makefile $(ASM_OBJECTS) $(RUST_OBJECT) $(LDSFILE)
