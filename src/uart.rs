@@ -70,8 +70,3 @@ impl Uart {
         }
     }
 }
-
-impl core::fmt::write for Uart {
-    fn write_str(&mut self, s: &str) -> Result<(), Error> {
-    }
-}
