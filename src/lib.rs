@@ -31,10 +31,7 @@ fn panic(info: &core::panic::PanicInfo) -> ! {
 //Constants defined for the UART. The clock frequency
 //is set with features during compilation
 
-#[cfg(feature = "qemu")]
-    const CLOCK_FREQ: u64 = 65_000_000; // QEMU Frequency
-#[cfg(feature = "hifive")]
-    const CLOCK_FREQ: u64 = 17_422_725; // QEMU Frequency
+const CLOCK_FREQ: u64 = 65_000_000; // QEMU Frequency
 const BAUD_RATE: u64 = 115_200;
 const DIVISOR: u64 = (CLOCK_FREQ / BAUD_RATE) - 1;
 
