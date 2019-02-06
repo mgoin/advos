@@ -42,8 +42,7 @@ fn panic(info: &core::panic::PanicInfo) -> ! {
 #[no_mangle]
 fn main() {
     // Intialize UART for reading/writing
-    let uart_driver = uart::Uart::new();
-    uart_driver.init();
+    uart::init();
 
     println!("Hello world!");
 
@@ -53,3 +52,4 @@ fn main() {
     //     }
     // }
 }
+
