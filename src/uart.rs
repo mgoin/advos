@@ -46,7 +46,6 @@ impl Uart {
             write_volatile(rxctrl, read_volatile(rxctrl) | 1);
         }
     }
-}
 
     pub fn readchar(&self) -> Option<u8> {
         let rxdata = RXDATA as *mut u32;
