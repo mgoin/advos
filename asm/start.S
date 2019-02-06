@@ -1,3 +1,7 @@
+//Michael Goin, Jacob Rutherford, Jonathan Ambrose
+//2-6-2019
+//This code serves as a bootloader for the operating system
+
 .option norvc
 .section .init
 .global _start
