@@ -6,18 +6,30 @@
 
 mod console;
 
-macro_rules! print {
-    ($fmt:expr) => ( for c in $fmt.chars() {console::uart::writechar(c as u8);} );
-}
+use console::Console;
+use core::fmt::Write;
 
-macro_rules! print_char {
-    ($fmt:expr) => ( console::uart::writechar($fmt as u8) );
+macro_rules! print {
+    ($fmt:expr) =>
+    {
+        write!(Console, $fmt).unwrap();
+    };
+    ($fmt:expr, $($args:tt)*) =>
+    {
+        write!(Console, "{}", format_args!($fmt, $($args)*)).unwrap();
+    };
 }
 
 macro_rules! println {
     () => ( print!("\n") );
-    ($fmt:expr) => ( print!(concat!($fmt, "\n")) );
-//	($fmt:expr, $( $x:expr ),+) => (print!(concat!($fmt, "\r\n"), $($x)+));
+    ($fmt:expr) =>
+    {
+        print!(concat!($fmt, "\n"));
+    };
+    ($fmt:expr, $($args:tt)*) =>
+    { 
+        print!("{}", format_args!(concat!($fmt, "\n"), $($args)*))
+    };
 }
 
 //The eh_personality tells our program how to unwind. We aren't going to write that, so tell
@@ -45,13 +57,13 @@ fn main() {
     console::uart::init();
 
     println!("Hello world!");
+    println!("test = {} and next test = {}", 1234, 98676);
 
     loop {
         if let Some(c) = console::uart::readchar() {
             print!("read ");
-            print_char!(c);
+            print!("{}", c as char);
             println!(" from uart");
         }
     }
 }
-
