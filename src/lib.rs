@@ -4,14 +4,14 @@
 #![no_mangle]
 #![allow(dead_code,unused_variables)]
 
-mod uart;
+mod console;
 
 macro_rules! print {
-    ($fmt:expr) => ( for c in $fmt.chars() {uart::writechar(c as u8)} );
+    ($fmt:expr) => ( for c in $fmt.chars() {console::uart::writechar(c as u8);} );
 }
 
 macro_rules! print_char {
-    ($fmt:expr) => ( uart::writechar($fmt as u8) );
+    ($fmt:expr) => ( console::uart::writechar($fmt as u8) );
 }
 
 macro_rules! println {
@@ -42,14 +42,16 @@ fn panic(info: &core::panic::PanicInfo) -> ! {
 #[no_mangle]
 fn main() {
     // Intialize UART for reading/writing
-    uart::init();
+    console::uart::init();
 
     println!("Hello world!");
 
-    // loop {
-    //     if let Some(c) = uart::readchar() {
-    //         println!("Some");
-    //     }
-    // }
+    loop {
+        if let Some(c) = console::uart::readchar() {
+            print!("read ");
+            print_char!(c);
+            println!(" from uart");
+        }
+    }
 }
 

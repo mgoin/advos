@@ -13,6 +13,8 @@
 // Then make readchar -> u8
 // 1. Read the register (use readvolatile)
 // 2. Check if bit 31 is set
+use core::ptr::{read_volatile, write_volatile};
+
 
 const CLOCK_FREQ: u64 = 65_000_000; // Hz
 const BAUD_RATE: u64 = 115_200;
@@ -26,8 +28,6 @@ const RXCTRL: u64 = UART_ADDR + 0x00c; // Recieve control register
 const IE:     u64 = UART_ADDR + 0x010; // UART interrupt enable
 const IP:     u64 = UART_ADDR + 0x014; // UART interrupt pending
 const DIV:    u64 = UART_ADDR + 0x018; // Baud rate divisor
-
-use core::ptr::{read_volatile, write_volatile};
 
 pub fn init() -> () {
     let div = DIV as *mut u32;
@@ -62,4 +62,3 @@ pub fn writechar(byte: u8) -> () {
         write_volatile(txdata, (t & 0x0000) | byte as u32);
     }
 }
-
