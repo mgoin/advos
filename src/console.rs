@@ -20,14 +20,14 @@ impl Console {
     }
 
     pub fn read() -> Result<(), Error> {
-        let mut ret_str: [char; 256] = ['a'; 256]; // fill the buffer with a filler letter
+        let mut buffer: [char; 256] = [' '; 256]; // fill the buffer with a temp value
         let mut next_char_index = 0;
         while let Some(c) = uart::readchar() {
             if c.is_ascii_control() {
                 match c as char {
                     '\n' =>
                     {
-                        ret_str[next_char_index] = c as char;
+                        buffer[next_char_index] = c as char;
                         Ok(())
                     },
                     _ =>
@@ -36,7 +36,7 @@ impl Console {
                     },
                 }.unwrap();
             }
-            ret_str[next_char_index] = c as char;
+            buffer[next_char_index] = c as char;
             next_char_index += 1;
         }
         Ok(())
