@@ -28,7 +28,7 @@ macro_rules! println {
     };
     ($fmt:expr, $($args:tt)*) =>
     { 
-        print!("{}", format_args!(concat!($fmt, "\n"), $($args)*))
+        print!("{}", format_args!(concat!($fmt, "\r\n"), $($args)*))
     };
 }
 
@@ -57,12 +57,13 @@ fn main() {
     console::uart::init();
 
     println!("Hello world!");
-    println!("test = {} and next test = {}", 1234, 98676);
 
     loop {
-        if let Some(c) = console::uart::readchar() {
-            print!("read ");
-            print!("{}", c as char);
+        if let Some(s) = console::Console::read() {
+            print!("\r\nread ");
+            for c in s.iter() {
+                print!("{}", c);
+            }
             println!(" from uart");
         }
     }
