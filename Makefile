@@ -18,7 +18,8 @@ QEMUARGS=-machine sifive_e -nographic -serial mon:stdio -kernel $(OUT)
 ASM_SOURCES=$(wildcard asm/*.S)
 ASM_OBJECTS=$(patsubst %.S,%.o,$(ASM_SOURCES))
 
-RUST_SOURCES=$(wildcard src/*.rs)
+RUST_SOURCES:=$(wildcard src/*.rs)
+RUST_SOURCES+=$(wildcard src/**/*.rs)
 RUST_OBJECT=target/$(TARGET)/debug/lib$(NAME).a
 
 LIBS=-l$(NAME) -lgcc
