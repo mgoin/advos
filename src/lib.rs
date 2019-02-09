@@ -10,24 +10,18 @@ use console::Console;
 use core::fmt::Write;
 
 macro_rules! print {
-    ($fmt:expr) =>
-    {
+    ($fmt:expr) => {
         write!(Console, $fmt).unwrap();
     };
-    ($fmt:expr, $($args:tt)*) =>
-    {
+    ($fmt:expr, $($args:tt)*) => {
         write!(Console, "{}", format_args!($fmt, $($args)*)).unwrap();
     };
 }
 
 macro_rules! println {
     () => ( print!("\n") );
-    ($fmt:expr) =>
-    {
-        print!(concat!($fmt, "\n"));
-    };
-    ($fmt:expr, $($args:tt)*) =>
-    { 
+    ($fmt:expr) => { print!(concat!($fmt, "\n")); };
+    ($fmt:expr, $($args:tt)*) => {
         print!("{}", format_args!(concat!($fmt, "\r\n"), $($args)*))
     };
 }
@@ -60,11 +54,11 @@ fn main() {
 
     loop {
         if let Some(s) = console::Console::read() {
-            print!("\r\nread ");
+            print!("\r\nread \"");
             for c in s.iter() {
                 print!("{}", c);
             }
-            println!(" from uart");
+            println!("\" from uart");
         }
     }
 }
