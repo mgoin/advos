@@ -10,6 +10,7 @@ mod console;
 use console::Console;
 use core::fmt::Write;
 
+#[macro_export]
 macro_rules! print {
     ($fmt:expr) => {
         write!(Console, $fmt).unwrap();
@@ -19,6 +20,7 @@ macro_rules! print {
     };
 }
 
+#[macro_export]
 macro_rules! println {
     () => ( print!("\n") );
     ($fmt:expr) => { print!(concat!($fmt, "\n")); };
