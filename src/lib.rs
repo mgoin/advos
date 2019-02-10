@@ -52,7 +52,7 @@ fn main() {
 
     // Test lines for formatting with println!
 
-    println!("");
+    println!();
     println!("Test lines: ");
     println!("  Lowercase Hex: 15 = {:x}", 15);
     println!("  Uppercase Hex: 26 = {:X}", 26);
@@ -60,7 +60,7 @@ fn main() {
     println!("  Octal: 12 = {:o}", 12);
     println!("  Formatted Double: 1.23456 of width 3 is {:.3}", 1.23456);
     println!("  Formatted Int: 42 of width 4 with leading zeroes is {:04}", 42);
-    println!("");
+    println!();
 
     loop {
         if let Some(s) = console::Console::read() {
