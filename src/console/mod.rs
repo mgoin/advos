@@ -1,10 +1,10 @@
 //Michael Goin, Jacob Rutherford, and Jonathan Ambrose
 //2-15-2019
-//This code implements a console. The read function will receive characters up until
-//a point that it receives an invalid control character or a '\r'. If
-//it gets a '\r', it returns the buffer. Otherwise, it returns a None.
-//The Write trait is also implemented for the Console to allow it use fmt
-//to handle the formatting for the print! and println! macros.
+//This code implements a console. The read function will receive characters up
+//until a point that it receives an invalid control character or a '\r'. If it
+//gets a '\r', it returns the buffer. Otherwise, it returns a None.  The Write
+//trait is also implemented for the Console to allow it use fmt to handle the
+//formatting for the print! and println! macros.
 
 use core::fmt::Error;
 
@@ -98,8 +98,8 @@ impl Console {
 
                             if next_char_index != 0 {
 
-                                //If we've moved the arrows, we need to account for that.
-                                //We'll shift the buffer internally
+                                //If we've moved the arrows, we need to account
+                                //for that.  We'll shift the buffer internally
 
                                 if arrow_count != 0 {
                                     let mut move_count = arrow_count;
@@ -116,9 +116,9 @@ impl Console {
                                 buffer[next_char_index + arrow_count - 1] = '\0';
                                 next_char_index -= 1;
 
-                                //Here we essentially rewrite the buffer to the screen
-                                //First we clear the line with spaces. Then we reprint
-                                //the buffer.
+                                //Here we essentially rewrite the buffer to the
+                                //screen. First we clear the line with spaces.
+                                //Then we reprint the buffer.
 
                                 Console::write_char('\r');
                                 for i in 1..next_char_index+arrow_count+2 {
@@ -130,8 +130,8 @@ impl Console {
                                     Console::write_char(*c);
                                 }
 
-                                //Here we rewrite the screen so our cursor is in the proper
-                                //position if we've moved around
+                                //Here we rewrite the screen so our cursor is in
+                                //the proper position if we've moved around
 
                                 if arrow_count != 0 {
                                     Console::write_char('\r');
@@ -142,8 +142,9 @@ impl Console {
                             }
                         },
 
-                        //This captures an arrow key. This is followed by a '[' and
-                        //then by a letter. The letter corresponds to the direction
+                        //This captures an arrow key. This is followed by a '['
+                        //and then by a letter. The letter corresponds to the
+                        //direction
 
                         '\u{1b}' => {
                             let mut count = 0;
@@ -154,8 +155,8 @@ impl Console {
                                 if let Some(bb) = uart::readchar() {
                                     let cc = bb as char;
 
-                                    //A 'D' is a left arrow. Move left if we aren't
-                                    //at 0.
+                                    //A 'D' is a left arrow. Move left if we
+                                    //aren't at 0.
 
                                     if cc == 'D' {
                                         if next_char_index != 0 {
@@ -164,8 +165,8 @@ impl Console {
                                         }
                                     }
 
-                                    //A 'C' is a right arrow. Move right if we aren't
-                                    //at the end of the current buffer.
+                                    //A 'C' is a right arrow. Move right if we
+                                    //aren't at the end of the current buffer.
 
                                     else if cc == 'C' {
                                         if buffer[next_char_index] != '\0' {
@@ -177,11 +178,12 @@ impl Console {
                                 }
                             }
 
-                            //Here we rewrite the screen to show proper cursor position.
-                            //The ' ' is there because a character must be printed after
-                            //the arrow to print the first character of the buffer. It is
-                            //odd, but it doesn't hurt anything to print it to get that
-                            //first character.
+                            //Here we rewrite the screen to show proper cursor
+                            //position.  The ' ' is there because a character
+                            //must be printed after the arrow to print the first
+                            //character of the buffer. It is odd, but it doesn't
+                            //hurt anything to print it to get that first
+                            //character.
 
                             Console::write_char('\r');
                             Console::write_char(' ');
@@ -200,8 +202,8 @@ impl Console {
                 }
 
                 //If it isn't a control character, we make sure we aren't at the
-                //end of the buffer. If we aren't, we print the character, add it
-                //to the buffer, and increment the next index.
+                //end of the buffer. If we aren't, we print the character, add
+                //it to the buffer, and increment the next index.
 
                 else {
                     if next_char_index != BUFFER_LENGTH {
