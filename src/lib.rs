@@ -6,6 +6,7 @@
 #![allow(dead_code,unused_variables)]
 
 mod console;
+mod global_constants;
 
 use console::Console;
 use core::fmt::Write;

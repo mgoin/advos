@@ -13,15 +13,13 @@
 // Then make readchar -> u8
 // 1. Read the register (use readvolatile)
 // 2. Check if bit 31 is set
+use crate::global_constants::{CLOCK_FREQ, UART_ADDR, BAUD_RATE};
 use core::ptr::{read_volatile, write_volatile};
 use core::fmt::Error;
 
 
-const CLOCK_FREQ: u64 = 65_000_000; // Hz
-const BAUD_RATE: u64 = 115_200;
 const DIVISOR: u64 = (CLOCK_FREQ / BAUD_RATE) - 1;
 
-const UART_ADDR: u64 = 0x1001_3000;
 const TXDATA: u64 = UART_ADDR + 0x000; // Transmit data register
 const RXDATA: u64 = UART_ADDR + 0x004; // Recieve data register
 const TXCTRL: u64 = UART_ADDR + 0x008; // Transmit control register
