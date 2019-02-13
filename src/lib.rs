@@ -49,7 +49,7 @@ fn panic(info: &core::panic::PanicInfo) -> ! {
 #[no_mangle]
 fn main() {
     // Intialize UART for reading/writing
-    console::uart::init();
+    console::uart::init().unwrap();
 
     // Test lines for formatting with println!
 

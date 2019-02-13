@@ -14,6 +14,7 @@
 // 1. Read the register (use readvolatile)
 // 2. Check if bit 31 is set
 use core::ptr::{read_volatile, write_volatile};
+use core::fmt::Error;
 
 
 const CLOCK_FREQ: u64 = 65_000_000; // Hz
@@ -29,7 +30,7 @@ const IE:     u64 = UART_ADDR + 0x010; // UART interrupt enable
 const IP:     u64 = UART_ADDR + 0x014; // UART interrupt pending
 const DIV:    u64 = UART_ADDR + 0x018; // Baud rate divisor
 
-pub fn init() -> () {
+pub fn init() -> Result<(), Error> {
     let div = DIV as *mut u32;
     let txctrl = TXCTRL as *mut u32;
     let rxctrl = RXCTRL as *mut u32;
@@ -38,6 +39,8 @@ pub fn init() -> () {
         write_volatile(txctrl, read_volatile(txctrl) | 1);
         write_volatile(rxctrl, read_volatile(rxctrl) | 1);
     }
+
+    Ok(())
 }
 
 pub fn readchar() -> Option<u8> {
