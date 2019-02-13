@@ -65,7 +65,6 @@ impl Console {
 
         let mut buffer: [char; BUFFER_LENGTH] = ['\0';BUFFER_LENGTH];
         let mut next_char_index = 0;
-        let mut arrow_count = 0;
 
         // Read will buffer input until the user hits enter
 
@@ -80,14 +79,15 @@ impl Console {
             if let Some(b) = uart::readchar() {
                 let c = b as char;
                 if c.is_control() {
-                    Console::write_char(c);
                     match c {
 
                         // Carriage return is given when the enter key is
                         // pressed, which is the trigger to return the buffer
                         // to the caller.
 
-                        '\r' => return Some(buffer),
+                        '\r' => {
+                            return Some(buffer);
+                        },
 
                         // backspace (\u{0008} or ascii 0x08) and
                         // delete (\u{007f} or ascii 0x7f) character
@@ -98,22 +98,9 @@ impl Console {
 
                             if next_char_index != 0 {
 
-                                //If we've moved the arrows, we need to account
-                                //for that.  We'll shift the buffer internally
-
-                                if arrow_count != 0 {
-                                    let mut move_count = arrow_count;
-                                    let mut next_index = next_char_index;
-                                    while move_count != 0 {
-                                        buffer[next_index - 1] = buffer[next_index];
-                                        move_count -= 1;
-                                        next_index += 1;
-                                    }
-                                }
-
                                 //Makes the new last character '\0'
 
-                                buffer[next_char_index + arrow_count - 1] = '\0';
+                                buffer[next_char_index - 1] = '\0';
                                 next_char_index -= 1;
 
                                 //Here we essentially rewrite the buffer to the
@@ -121,7 +108,7 @@ impl Console {
                                 //Then we reprint the buffer.
 
                                 Console::write_char('\r');
-                                for i in 1..next_char_index+arrow_count+2 {
+                                for i in 0..next_char_index+1 {
                                     Console::write_char(' ');
                                 }
 
@@ -129,66 +116,6 @@ impl Console {
                                 for c in buffer.iter() {
                                     Console::write_char(*c);
                                 }
-
-                                //Here we rewrite the screen so our cursor is in
-                                //the proper position if we've moved around
-
-                                if arrow_count != 0 {
-                                    Console::write_char('\r');
-                                    for i in 0..next_char_index {
-                                        Console::write_char(buffer[i]);
-                                    }
-                                }
-                            }
-                        },
-
-                        //This captures an arrow key. This is followed by a '['
-                        //and then by a letter. The letter corresponds to the
-                        //direction
-
-                        '\u{1b}' => {
-                            let mut count = 0;
-
-                            //Here we read those next two characters
-
-                            while count < 2 {
-                                if let Some(bb) = uart::readchar() {
-                                    let cc = bb as char;
-
-                                    //A 'D' is a left arrow. Move left if we
-                                    //aren't at 0.
-
-                                    if cc == 'D' {
-                                        if next_char_index != 0 {
-                                            next_char_index -= 1;
-                                            arrow_count += 1;
-                                        }
-                                    }
-
-                                    //A 'C' is a right arrow. Move right if we
-                                    //aren't at the end of the current buffer.
-
-                                    else if cc == 'C' {
-                                        if buffer[next_char_index] != '\0' {
-                                            next_char_index += 1;
-                                            arrow_count -= 1;
-                                        }
-                                    }
-                                    count += 1;
-                                }
-                            }
-
-                            //Here we rewrite the screen to show proper cursor
-                            //position.  The ' ' is there because a character
-                            //must be printed after the arrow to print the first
-                            //character of the buffer. It is odd, but it doesn't
-                            //hurt anything to print it to get that first
-                            //character.
-
-                            Console::write_char('\r');
-                            Console::write_char(' ');
-                            for i in 0..next_char_index {
-                                Console::write_char(buffer[i]);
                             }
                         },
 

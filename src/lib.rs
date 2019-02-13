@@ -1,3 +1,8 @@
+//Michael Goin, Jacob Rutherford, Jonathan Ambrose
+//2-13-2019
+//This iteration of lib contains the print! and println! macros
+//and tests these macros using the Console.
+
 #![feature(panic_info_message,allocator_api,asm,lang_items,compiler_builtins_lib)]
 //We are not permitted to use the standard library since it isn't written for
 //our operating system
@@ -11,6 +16,8 @@ mod global_constants;
 use console::Console;
 use core::fmt::Write;
 
+//The print! macro will print a string by calling write!
+
 #[macro_export]
 macro_rules! print {
     ($fmt:expr) => {
@@ -21,10 +28,13 @@ macro_rules! print {
     };
 }
 
+//The println! macro appends \r\n to the string and then calls
+//the print! macro
+
 #[macro_export]
 macro_rules! println {
-    () => ( print!("\n") );
-    ($fmt:expr) => { print!(concat!($fmt, "\n")); };
+    () => ( print!("\r\n") );
+    ($fmt:expr) => { print!(concat!($fmt, "\r\n")); };
     ($fmt:expr, $($args:tt)*) => {
         print!("{}", format_args!(concat!($fmt, "\r\n"), $($args)*))
     };
@@ -51,6 +61,7 @@ fn panic(info: &core::panic::PanicInfo) -> ! {
 
 #[no_mangle]
 fn main() {
+
     // Intialize UART for reading/writing
     console::uart::init().unwrap();
 
