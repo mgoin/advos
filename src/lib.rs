@@ -10,6 +10,7 @@ mod global_constants;
 mod trap;
 
 use console::Console;
+use trap::init_context_timer;
 use core::fmt::Write;
 use core::ptr::{write_volatile};
 
@@ -82,6 +83,9 @@ fn main() {
 
     println!("sending software interrupt");
     unsafe { write_volatile(clim, interrupt_mask); }
+
+    println!("initializing context timer, should receive a context switch trap in 1 second");
+    init_context_timer().unwrap();
 
     loop {
         if let Some(s) = console::Console::read() {
