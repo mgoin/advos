@@ -1,6 +1,6 @@
-use crate::{print, println, CORE_LOCAL_INTERRUPT_MAP};
+use crate::{print, println};
 use crate::console::Console;
-use crate::console::uart::CLOCK_FREQ;
+use crate::global_constants::{CLOCK_FREQ, CORE_LOCAL_INTERRUPT_MAP};
 use core::fmt::{Error, Write};
 use core::ptr::{write_volatile};
 

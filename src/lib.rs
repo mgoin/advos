@@ -15,9 +15,7 @@ mod global_constants;
 mod trap;
 
 use console::Console;
-use trap::init_context_timer;
 use core::fmt::Write;
-use core::ptr::{write_volatile};
 
 //The print! macro will print a string by calling write!
 
@@ -66,8 +64,6 @@ fn panic(info: &core::panic::PanicInfo) -> ! {
     abort()
 }
 
-const CORE_LOCAL_INTERRUPT_MAP: u64 = 0x0200_0000;
-
 #[no_mangle]
 fn main() {
     unsafe { enable_interrupts(); }
@@ -88,14 +84,14 @@ fn main() {
     println!("  Formatted Int: 42 of width 4 with leading zeroes is {:04}", 42);
     println!();
 
-    let clim = CORE_LOCAL_INTERRUPT_MAP as *mut u32;
+    let clim = global_constants::CORE_LOCAL_INTERRUPT_MAP as *mut u32;
     let interrupt_mask: u32 = 0x008;
 
     println!("sending software interrupt");
-    unsafe { write_volatile(clim, interrupt_mask); }
+    unsafe { core::ptr::write_volatile(clim, interrupt_mask); }
 
     println!("initializing context timer, should receive a context switch trap in 1 second");
-    init_context_timer().unwrap();
+    trap::init_context_timer().unwrap();
 
     loop {
         if let Some(s) = console::Console::read() {
