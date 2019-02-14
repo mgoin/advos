@@ -119,6 +119,14 @@ impl Console {
                             }
                         },
 
+                        //  '\t' is considered a control character, simplly add
+                        //  it to the buffer and continue since it is printable.
+                        '\t' => {
+                          Console::write_char('\t');
+                          buffer[next_char_index] = '\t';
+                          next_char_index += 1;
+                        },
+
                         // Unhandled control charaters
 
                         _ => {
