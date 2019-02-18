@@ -1,4 +1,7 @@
 .option norvc
+
+.altmacro
+
 .section .init
 .global _start
 _start:
@@ -58,59 +61,7 @@ _start:
 
 	mret
 
-// This is called from Rust, so we know we're in machine mode
-.global enable_interrupts
-enable_interrupts:
-  // Enable interrupts with MPIE and MIE bits in mstatus
-  // MPIE => Machine Previous Interrupt Enable
-  //      => bit 7
-  // MIE  => Machine Interrupt Enable
-  //      => bit 3
-  csrr  t0, mstatus
-  li    t1, 0x88
-  or    t0, t0, t1
-  csrw  mstatus, t0
-
-  // Enable HW|CLINT|SW interrupts
-  // (bits) 11     7  3 in mie = 0x888
-  li    t1, (1 << 11) | (1 << 7) | (1 << 3)
-  csrrw zero, mie, t1
-
-  // Set RISC-V trap handler function to be the mtvec
-  la    t1, trap_handler
-  
-  // ensure that the trap handler is aligned by 4 since the lower 2 bits of
-  // mtvec _must_ be 0 for MODE to be set to direct since our trap handler
-  // handles all interrupts/traps
-  li    t0, ~( (1 << 1) | 1 )
-  and   t1, t1, t0 
-  csrw  mtvec, t1
-
-  ret
-
 park:
 	//All HARTs that are != 0 will go here and spin in a wait loop
 	wfi
 	j	park
-
-// RISC-V trap handler function has to be aligned by 4. This function will jump
-// to the rust trap_handler where the trap will _actually_ be handled. This
-// label simply saves registers and restores them upon the trap being
-// successfully handled.
-.global trap_handler
-.align 4
-trap_handler:
-  // save mepc - the instruction that was interrupted by the trap.
-  // arg0 = mcause
-  // arg1 = mepc
-  csrr a0, mcause
-  csrr a1, mepc
-  mv   s0, ra
-
-  call handle_trap
-
-  // restore the old return address to the mepc so we jump back to the correct
-  // location that we left when we trapped
-  csrw mepc, s0
-
-  mret
