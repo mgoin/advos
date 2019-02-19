@@ -4,6 +4,10 @@ pub struct Mutex {
   state: u8,
 }
 
+extern "C" {
+  fn mutex_lock(state: *mut u8) -> ();
+}
+
 impl Mutex {
   // Creates free (unlocked) mutex
   pub fn new() -> Mutex { 
@@ -13,12 +17,15 @@ impl Mutex {
   // Tries to lock the mutex, blocking until it can do so
   pub fn lock(&mut self) {
     unsafe {
+      /*
       asm!("
           li t0, 1                  # Initialize swap value
         again:
           amoswap.w.aq t0, t0, ($0) # Attempt to acquire lock
           bnez t0, again            # Retry if held"
         :: "r"(&self.state) : "t0" : "volatile");
+        */
+      mutex_lock(&mut self.state);
     }
   }
   
