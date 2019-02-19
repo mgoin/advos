@@ -13,6 +13,7 @@
 mod console;
 mod global_constants;
 mod trap;
+mod lock;
 
 use console::Console;
 use core::fmt::Write;
@@ -83,6 +84,11 @@ fn main() {
     println!("  Formatted Double: 1.23456 of width 3 is {:.3}", 1.23456);
     println!("  Formatted Int: 42 of width 4 with leading zeroes is {:04}", 42);
     println!();
+
+    let mut m = lock::Mutex::new();
+    println!("Locking mutex..."); m.lock();
+    println!("Unlocking mutex..."); m.unlock();
+    println!("Locking mutex again..."); m.lock();
 
     let clim = global_constants::CORE_LOCAL_INTERRUPT_MAP as *mut u32;
     let interrupt_mask: u32 = 0x008;
