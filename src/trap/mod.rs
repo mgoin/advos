@@ -1,16 +1,10 @@
 use crate::{print, println};
 use crate::console::Console;
-use crate::global_constants::{CLOCK_FREQ, CORE_LOCAL_INTERRUPT_MAP};
-use core::fmt::{Error, Write};
-use core::ptr::{write_volatile};
+use crate::global_constants::CORE_LOCAL_INTERRUPT_MAP;
+use core::fmt::Write;
+use core::ptr::{write_volatile, read_volatile};
 
-const CTX_PER_SECOND    : u64 = 1;
-const TIME_TO_CTX_SWITCH: u64 = CLOCK_FREQ / CTX_PER_SECOND;
-
-const MTIME_CMP_LO: u64 = CORE_LOCAL_INTERRUPT_MAP + 0x4000;
-const MTIME_CMP_HI: u64 = CORE_LOCAL_INTERRUPT_MAP + 0x4004;
-const MTIME_LO    : u64 = CORE_LOCAL_INTERRUPT_MAP + 0xBFF8;
-const MTIME_HI    : u64 = CORE_LOCAL_INTERRUPT_MAP + 0xBFFC;
+pub mod timer;
 
 #[no_mangle]
 pub extern "C" fn handle_trap(mcause: u32, mepc: u32) -> u32 {
@@ -19,6 +13,13 @@ pub extern "C" fn handle_trap(mcause: u32, mepc: u32) -> u32 {
   if (mcause >> 31) == 1 {
     // TODO: HandleInterrupt(mcause);
     println!("got an interrupt");
+    match mcause {
+      0x80000007 => {
+        timer::incr_timer().unwrap();
+        return mepc;
+      },
+      _ => (),
+    }
   }
   else {
     // TODO: HandleException(mcause);
@@ -46,17 +47,4 @@ pub extern "C" fn handle_trap(mcause: u32, mepc: u32) -> u32 {
   else {
     mepc + 4
   }
-
-}
-
-pub fn init_context_timer() -> Result<(), Error> {
-  let cmp_lo_addr = MTIME_CMP_LO as *mut u32;
-  let cmp_hi_addr = MTIME_CMP_HI as *mut u32;
-
-  unsafe {
-    write_volatile(cmp_lo_addr, (TIME_TO_CTX_SWITCH & 0xFFFFFFFF) as u32);
-    write_volatile(cmp_hi_addr, ((TIME_TO_CTX_SWITCH >> 32) & 0xFFFFFFFF) as u32);
-  }
-
-  Ok(())
 }

@@ -90,10 +90,8 @@ fn main() {
     println!("sending software interrupt");
     unsafe { core::ptr::write_volatile(clim, interrupt_mask); }
 
-    /*
     println!("initializing context timer, should receive a context switch trap in 1 second");
-    trap::init_context_timer().unwrap();
-    */
+    trap::timer::init().unwrap();
 
     loop {
         if let Some(s) = console::Console::read() {
