@@ -53,7 +53,7 @@ pub extern "C" fn handle_trap(mcause: u32, mepc: u32) -> u32 {
     (0, 12) => println!("Instruction page fault"),
     (0, 13) => println!("Load page fault"),
     (0, 15) => println!("Store/AMO page fault"),
-    (_, _)  => println!("Reserved/unknown code (THIS IS A PROBLEM)"),
+    (_, _)  => println!("Reserved/unknown code (THIS SHOULD NEVER HAPPEN)"),
   }
 
   // Clear the CLIM to indicate we've handled the interrupt
