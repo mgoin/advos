@@ -29,8 +29,24 @@ pub extern "C" fn handle_trap(mcause: u32, mepc: u32) -> u32 {
   let clim = CORE_LOCAL_INTERRUPT_MAP as *mut u32;
   unsafe { write_volatile(clim, 0); }
   println!("trap handled, returning");
+  let mepc_ptr = mepc as *mut u32;
+  let next_instruction: u32;
+  unsafe {
+    next_instruction = read_volatile(mepc_ptr);
+  }
 
-  return mepc;
+  // Compressed instructions are 2 bytes, while uncompressed are 4 bytes.
+  // If the lowest 2 bits of the instruction are 0b00, then the instruction is
+  // uncompressed, and if anything else, then the instruction is compressed, so
+  // we can then determine how much to increment mepc by to return to the
+  // correct instruction after the trap has been handled.
+  if (next_instruction & 0x3) != 0 {
+    mepc + 2
+  }
+  else {
+    mepc + 4
+  }
+
 }
 
 pub fn init_context_timer() -> Result<(), Error> {

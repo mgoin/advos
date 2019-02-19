@@ -6,6 +6,8 @@
 // and jumping to the Rust |handle_trap| function, which will determine how
 // to handle the given cause.
 
+.altmacro
+
 // Macro to save a register to memory
 .macro sv z, jacob=t6
     sw  x\z, ((\z)*4)(\jacob)
@@ -58,64 +60,45 @@ trap_handler:
   // save the register context before overwriting anything
   // t6 will be the temporary register used to hold the stack
   // pointer as the registers are all saved, and 
-  addi sp, sp, 4
-  sw   t6, (sp)
-
-  // restore sp to it's original value
-  li   t6, 4
-  sub  sp, sp, 4
+  sw   t6, 4(sp)
 
   // make t6 the new "sp" to store the rest of the registers
   add  t6, sp, 4
 
-  .set i, 0
-  .rept 31
+  // start at 1 because we don't need to save 0 register
+  .set i, 1
+  .rept 30
     sv %i
+    .set i, i+1
   .endr
-
-  addi  sp, sp, 4
-  lw    t6, (sp)
-  sv 32, t5
 
   // save mepc - the instruction that was interrupted by the trap.
   // arg0 = mcause
   // arg1 = mepc
   csrr a0, mcause
   csrr a1, mepc
-  mv   s0, ra
 
   call handle_trap
 
-  // restore the old return address to the mepc so we jump back to the correct
-  // location that we left when we trapped
-  csrw mepc, s0
+  // Save the return value, because that's where we need to return to.
+  // The checks to determine if the next instruction is offset 2 or 4
+  // due to compressed instructions is done in Rust
+  sw  a0, 4*32(sp)
 
-  mret
-
-get_register_context:
-  addi sp,sp,4
-  sw   ra, (sp)
-  addi sp,sp,4
-
-  mv   ra,a0
-
-  //mv   t6,sp
-  .set i, 0
-  .rept 31
-    ssv %i
+  // start at 1 because we don't need to load 0 register
+  .set i, 1
+  .rept 30
+    lv %i
     .set i, i+1
   .endr
 
+  // restore t6, which was saved at the beginning
+  lw t6, 4(sp)
 
-  li t6, 136
-  sub sp, sp, t6
-  lw  t6, (sp)
-  ssv 31
+  // restore the old return address to the mepc so we jump back to the correct
+  // location that we left when we trapped
+  lw a0, 4*32(sp)
 
-  auipc t6, 0
-  //mv t6, pc
-  sw t6, (sp)
+  csrw mepc,a0
 
-  add a0, sp, zero
-
-  ret
+  mret
