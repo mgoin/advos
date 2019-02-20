@@ -19,7 +19,7 @@ pub fn init() -> Result<(), Error> {
   Ok(())
 }
 
-pub fn incr_timer() -> Result<(), Error> {
+pub fn incr() -> Result<(), Error> {
   let mut time: u64 = 0;
   let (time_lo, time_hi) = read_mtime();
 

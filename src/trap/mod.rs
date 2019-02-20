@@ -31,7 +31,7 @@ pub extern "C" fn handle_trap(mcause: u32, mepc: u32) -> u32 {
     (1, 5)  => println!("Supervisor timer interrupt"),
     (1, 7)  => {
       println!("Machine timer interrupt");
-      timer::incr_timer().unwrap();
+      timer::incr().unwrap();
     },
     (1, 8)  => println!("User external interrupt"),
     (1, 9)  => println!("Supervisor external interrupt"),
