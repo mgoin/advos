@@ -63,7 +63,8 @@ trap_handler:
   sw   t6, 4(sp)
 
   // make t6 the new "sp" to store the rest of the registers
-  add  t6, sp, 4
+  //add  t6, sp, 4
+  la   t6, __bss_start
 
   // start at 1 because we don't need to save 0 register
   .set i, 1
@@ -71,6 +72,9 @@ trap_handler:
     sv %i
     .set i, i+1
   .endr
+
+  // save stack value to read from
+  sw  t6, 4*31(sp)
 
   // save mepc - the instruction that was interrupted by the trap.
   // arg0 = mcause
@@ -83,7 +87,10 @@ trap_handler:
   // Save the return value, because that's where we need to return to.
   // The checks to determine if the next instruction is offset 2 or 4
   // due to compressed instructions is done in Rust
-  sw  a0, 4*32(sp)
+  sw  a0, 8(sp)
+
+  // restore start of register contexts that was stored on the stack
+  la    t6, __bss_start
 
   // start at 1 because we don't need to load 0 register
   .set i, 1
@@ -92,13 +99,13 @@ trap_handler:
     .set i, i+1
   .endr
 
-  // restore t6, which was saved at the beginning
-  lw t6, 4(sp)
-
   // restore the old return address to the mepc so we jump back to the correct
   // location that we left when we trapped
-  lw a0, 4*32(sp)
+  lw t6, 8(sp)
 
-  csrw mepc,a0
+  csrw mepc,t6
+
+  // restore t6, which was saved at the beginning
+  lw t6, 4(sp)
 
   mret
