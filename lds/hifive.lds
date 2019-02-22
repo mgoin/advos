@@ -121,7 +121,7 @@ SECTIONS
     *(.data .data.*)
     *(.gnu.linkonce.d.*)
     . = ALIGN(8);
-    PROVIDE( __global_pointer$ = . + 0x800 );
+    PROVIDE( __advos_global_pointer$ = . + 0x800 );
     *(.sdata .sdata.*)
     *(.gnu.linkonce.s.*)
     . = ALIGN(8);

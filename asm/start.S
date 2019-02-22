@@ -14,7 +14,7 @@ _start:
 	//We are going to use CPU #0, everything else will go into sleep loop
 	bnez	t0, park
 	//Set the global and stack memory pointers
-	la	gp, __global_pointer$
+	la	gp, __advos_global_pointer$
 	la	sp, _sp
 	//Copy data section from flash memory into RAM
 	//_data_lma - This is the memory address in the FLASH memory you need to copy FROM.
