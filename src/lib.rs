@@ -62,6 +62,10 @@ fn abort() -> !
 //function won't return, so we have to make sure it doesn't.
 #[panic_handler]
 fn panic(info: &core::panic::PanicInfo) -> ! {
+    if let Some(loc) = info.location() {
+        println!("PANIC in file {}: line {} column {}",
+            loc.file(), loc.line(), loc.column());
+    }
     abort()
 }
 
@@ -74,7 +78,6 @@ fn main() {
     console::uart::init().unwrap();
 
     // Test lines for formatting with println!
-
     println!();
     println!("Test lines: ");
     println!("  Lowercase Hex: 15 = {:x}", 15);
@@ -85,6 +88,7 @@ fn main() {
     println!("  Formatted Int: 42 of width 4 with leading zeroes is {:04}", 42);
     println!();
 
+    // Test mutex locking and unlocking
     let mut m = lock::Mutex::new();
     println!("Locking mutex..."); m.lock();
     println!("Unlocking mutex..."); m.unlock();
