@@ -31,6 +31,9 @@ pub extern "C" fn handle_trap(mcause: u32, mepc: u32) -> u32 {
     (1, 7)  => {
       println!("Machine timer interrupt");
       timer::incr().unwrap();
+      let clim = CORE_LOCAL_INTERRUPT_MAP as *mut u32;
+      unsafe { write_volatile(clim, 0u32); }
+      return mepc;
     },
     (1, 8)  => { println!("User external interrupt"); },
     (1, 9)  => { println!("Supervisor external interrupt"); },

@@ -8,6 +8,8 @@
 
 .altmacro
 
+// Allocate the necessary space in the .bss section
+.global GLOBAL_CTX
 .common GLOBAL_CTX, 32*4, 4
 
 // Macro to save a register to memory
@@ -88,7 +90,7 @@ trap_handler:
 
   // The checks to determine if the next instruction is offset 2 or 4
   // due to compressed instructions is done in Rust, save it to the stack
-  // to restore registers
+  // to restore registers without wiping it out
   sw  a0, 4(sp)
 
   // restore start of register contexts that was stored to bss section
@@ -101,8 +103,7 @@ trap_handler:
     .set i, i+1
   .endr
 
-  // restore the old return address to the mepc so we jump back to the correct
-  // location that we left when we trapped
+  // Bring back the mepc pointer with the correct offset
   lw t6, 4(sp)
 
   csrw mepc,t6
