@@ -8,14 +8,16 @@
 
 .altmacro
 
+.common GLOBAL_CTX, 32*4, 4
+
 // Macro to save a register to memory
 .macro sv z, jacob=t6
-    sw  x\z, ((\z)*4)(\jacob)
+    sw  x\z, ((\z - 1)*4)(\jacob)
 .endm
 
 // Macro to load a register from memory
 .macro lv z, jacob=t6
-    lw  x\z, ((\z)*4)(\jacob)
+    lw  x\z, ((\z - 1)*4)(\jacob)
 .endm
 
 // This is called from Rust, so we know we're in machine mode
@@ -59,12 +61,11 @@ enable_interrupts:
 trap_handler:
   // save the register context before overwriting anything
   // t6 will be the temporary register used to hold the stack
-  // pointer as the registers are all saved, and 
+  // pointer as the registers are all saved
   sw   t6, 4(sp)
 
-  // make t6 the new "sp" to store the rest of the registers
-  //add  t6, sp, 4
-  la   t6, __bss_start
+  // make load GLOBAL_CTX to t6. GLOBAL_CTX is located in the bss section
+  la   t6, GLOBAL_CTX 
 
   // start at 1 because we don't need to save 0 register
   .set i, 1
@@ -73,10 +74,11 @@ trap_handler:
     .set i, i+1
   .endr
 
-  // save stack value to read from
-  sw  t6, 4*31(sp)
+  // save t6 to bss
+  lw  t6, 4(sp)
+  la  t5, GLOBAL_CTX
+  sv  31, t5
 
-  // save mepc - the instruction that was interrupted by the trap.
   // arg0 = mcause
   // arg1 = mepc
   csrr a0, mcause
@@ -84,13 +86,13 @@ trap_handler:
 
   call handle_trap
 
-  // Save the return value, because that's where we need to return to.
   // The checks to determine if the next instruction is offset 2 or 4
-  // due to compressed instructions is done in Rust
-  sw  a0, 8(sp)
+  // due to compressed instructions is done in Rust, save it to the stack
+  // to restore registers
+  sw  a0, 4(sp)
 
-  // restore start of register contexts that was stored on the stack
-  la    t6, __bss_start
+  // restore start of register contexts that was stored to bss section
+  la  t6, GLOBAL_CTX
 
   // start at 1 because we don't need to load 0 register
   .set i, 1
@@ -101,11 +103,14 @@ trap_handler:
 
   // restore the old return address to the mepc so we jump back to the correct
   // location that we left when we trapped
-  lw t6, 8(sp)
+  lw t6, 4(sp)
 
   csrw mepc,t6
 
   // restore t6, which was saved at the beginning
-  lw t6, 4(sp)
+  sw t5, 4(sp)
+  la t5, GLOBAL_CTX
+  lv 31, t5
+  lw t5, 4(sp)
 
   mret
