@@ -1,7 +1,5 @@
-use crate::{println, print};
 use crate::global_constants::{CLOCK_FREQ, CORE_LOCAL_INTERRUPT_MAP};
-use crate::console::Console;
-use core::fmt::{Write,Error};
+use core::fmt::{Error};
 use core::ptr::{write_volatile, read_volatile};
 
 const CTX_PER_SECOND    : u64 = 1;
@@ -19,12 +17,8 @@ pub fn init() -> Result<(), Error> {
 pub fn incr() -> Result<(), Error> {
   let (mut time_lo, mut time_hi) = read_mtime();
 
-  println!("timer = {}", time_lo);
-
   let prev_time = time_lo;
   time_lo = time_lo.wrapping_add(TIME_TO_CTX_SWITCH);
-
-  println!("new timer = {}", time_lo);
 
   if time_lo < prev_time {
     time_hi += 1;

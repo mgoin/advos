@@ -11,15 +11,16 @@ pub extern "C" fn handle_trap(mcause: u32, mepc: u32) -> u32 {
   let interrupt_flag: u32 = mcause >> 31;
   let mcause_code: u32 = mcause & 0x1F;
 
+  // Clear CLINT interrupt register before doing anything else
+  let clim = CORE_LOCAL_INTERRUPT_MAP as *mut u32;
+  unsafe { write_volatile(clim, 0u32); }
+
   if interrupt_flag == 1 {
     // TODO: HandleInterrupt(mcause);
-    print!("INTERRUPT");
   }
   else {
     // TODO: HandleException(mcause);
-    print!("EXCEPTION");
   }
-  print!(" {}: ", mcause_code);
 
   // Match the flag and code to see what happened
   match (interrupt_flag, mcause_code) {
@@ -29,10 +30,10 @@ pub extern "C" fn handle_trap(mcause: u32, mepc: u32) -> u32 {
     (1, 4)  => { println!("User timer interrupt"); },
     (1, 5)  => { println!("Supervisor timer interrupt"); },
     (1, 7)  => {
-      println!("Machine timer interrupt");
+      // Explicitly return since this is a synchronous interrupt and needs
+      // to return to the instruction that was interrupted without moving
+      // forward.
       timer::incr().unwrap();
-      let clim = CORE_LOCAL_INTERRUPT_MAP as *mut u32;
-      unsafe { write_volatile(clim, 0u32); }
       return mepc;
     },
     (1, 8)  => { println!("User external interrupt"); },
@@ -54,11 +55,6 @@ pub extern "C" fn handle_trap(mcause: u32, mepc: u32) -> u32 {
     (0, 15) => { println!("Store/AMO page fault"); },
     (_, _)  => { println!("Reserved/unknown code (THIS SHOULD NEVER HAPPEN)"); },
   }
-
-  // Clear the CLIM to indicate we've handled the interrupt
-  let clim = CORE_LOCAL_INTERRUPT_MAP as *mut u32;
-  unsafe { write_volatile(clim, 0u32); }
-  println!("trap handled, returning");
 
   let mepc_ptr = mepc as *mut u32;
   let next_instruction: u32;

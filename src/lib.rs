@@ -100,7 +100,7 @@ fn main() {
     println!("sending software interrupt");
     unsafe { core::ptr::write_volatile(clim, interrupt_mask); }
 
-    println!("initializing context timer, should receive a context switch trap in 1 second");
+    println!("timer initialized");
     trap::timer::init().unwrap();
 
     loop {
