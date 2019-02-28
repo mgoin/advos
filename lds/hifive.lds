@@ -18,6 +18,7 @@ PHDRS
 SECTIONS
 {
   __stack_size = DEFINED(__stack_size) ? __stack_size : 2K;
+  __heap_size = DEFINED(__heap_size) ? __heap_size : 4K;
 
   .init           :
   {
@@ -153,9 +154,15 @@ SECTIONS
   PROVIDE( _end = . );
   PROVIDE( end = . );
 
+  .heap ORIGIN(ram) :
+  {
+    PROVIDE( __heap_start = .);
+    . = . + __heap_size;
+    PROVIDE( __heap_end = .);
+  }
+
   .stack ORIGIN(ram) + LENGTH(ram) - __stack_size :
   {
-    PROVIDE( _heap_end = . );
     . = __stack_size;
     PROVIDE( _sp = . );
   } >ram AT>ram :ram
