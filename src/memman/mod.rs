@@ -72,16 +72,19 @@ impl MemManager {
                     let s = read_volatile(&((*desc).len)) as u16;
                     if s as u32 >= size+core::mem::size_of::<Descriptor>() as u32 {
 
-                        //If it is big enough, mark as taken and reset the size
+                        let len = read_volatile(&mut ((*desc).len)) as u16;
+
+                        //If it is big enough, mark as taken
 
                         write_volatile(&mut ((*desc).taken), 1 as u16);
-                        write_volatile(&mut ((*desc).len), (size+core::mem::size_of::<Descriptor>() as u32) as u16);
 
-                        //Make a new descriptor. Check if it is taken already (could've
-                        //allocated the perfect amount to fill a block). Only do this if
-                        //we wouldn't be at the end
+                        //Split the block if the block was big enough that it
+                        //would leave more than a Descriptor
 
-                        if start+size+core::mem::size_of::<Descriptor>() as u32 != end {
+                        let s2 = size+core::mem::size_of::<Descriptor>() as u32;
+                        if s2 != len as u32 && s2+core::mem::size_of::<Descriptor>() as u32 != len as u32 {
+                            write_volatile(&mut ((*desc).len), (size+core::mem::size_of::<Descriptor>() as u32) as u16);
+
                             let new_desc = (start + size + (core::mem::size_of::<Descriptor>() as u32)) as *mut Descriptor;
                             let new_taken = read_volatile(&((*new_desc).taken)) as u16;
                             if new_taken != 1 {
