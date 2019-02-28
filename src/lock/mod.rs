@@ -4,10 +4,6 @@ pub struct Mutex {
   state: u8,
 }
 
-extern "C" {
-  fn mutex_lock(state: *mut u8) -> ();
-}
-
 impl Mutex {
   // Creates free (unlocked) mutex
   pub fn new() -> Mutex { 
