@@ -149,17 +149,21 @@ SECTIONS
     . = ALIGN(4);
   } >ram AT>ram :ram
 
-  . = ALIGN(8);
   PROVIDE( __bss_end = . );
   PROVIDE( _end = . );
   PROVIDE( end = . );
 
-  .heap ORIGIN(ram) :
+
+  /* Create a new section for the heap */
+  .heap :
   {
-    PROVIDE( __heap_start = .);
-    . = . + __heap_size;
-    PROVIDE( __heap_end = .);
-  }
+    /* emits |__heap_start| memory address to assembly */
+    PROVIDE( __heap_start = . );
+    /* moves the "current" pointer forward by |__heap_size| bytes */
+    . = __heap_size;
+    /* emits |__heap_end| memory address to assembly */
+    PROVIDE( __heap_end = . );
+  } >ram AT>ram :ram
 
   .stack ORIGIN(ram) + LENGTH(ram) - __stack_size :
   {
