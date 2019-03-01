@@ -2,17 +2,8 @@
 //2-26-2019
 //This code implements the memory manager.
 
-//use core::fmt::Error;
 use core::ptr::{read_volatile, write_volatile};
-
-/*
-extern "C" {
-    static __heap_start: u32;
-    static __heap_end: u32;
-}
-*/
-const HEAP_START: u64 = 0x80000000;
-const HEAP_END: u64 = 0x80003800;
+use crate::{HEAP_START, HEAP_END};
 
 pub struct Descriptor {
     len: u16,
@@ -31,7 +22,7 @@ impl MemManager {
 
         unsafe{
             let desc = HEAP_START as *mut Descriptor;
-            write_volatile(&mut ((*desc).len), (HEAP_END - HEAP_START) as u16);
+            write_volatile(&mut ((*desc).len), ((HEAP_END as u32) - (HEAP_START as u32)) as u16);
             write_volatile(&mut ((*desc).taken), 0);
         }
     }

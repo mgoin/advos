@@ -46,6 +46,8 @@ macro_rules! println {
 
 extern "C" {
   fn enable_interrupts() -> ();
+  static HEAP_START: *const u32;
+  static HEAP_END: *const u32;
 }
 
 //The eh_personality tells our program how to unwind. We aren't going to write
