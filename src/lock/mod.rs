@@ -1,7 +1,7 @@
 // Implementation of mutex for locking
 #[repr(align(4))] // Needs to be aligned for atomic instr
 pub struct Mutex {
-  state: u8,
+  state: u32,
 }
 
 impl Mutex {
@@ -14,10 +14,11 @@ impl Mutex {
   pub fn lock(&mut self) {
     unsafe {
       asm!("
-        123:
-          amoswap.w.aq $1, zero, ($0) # Attempt to acquire lock
-          bnez $1, 123b            # Retry if held"
-        :"=r"(&self.state) : "r"(&self.state) :: "volatile");
+          li t0, 1                  # Initialize swap value
+        again:
+          amoswap.w.aq t0, t0, ($0) # Attempt to acquire lock
+          bnez t0, again            # Retry if held"
+        :: "r"(&self.state) : "t0" : "volatile");
     }
   }
   

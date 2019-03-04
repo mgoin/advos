@@ -220,11 +220,7 @@ fn main() {
     test_println();
 
     // Test mutex locking and unlocking
-    //test_mutex();
-    let mut m = lock::Mutex::new();
-    println!("Locking mutex..."); m.lock();
-    println!("Unlocking mutex..."); m.unlock();
-    println!("Locking mutex again..."); m.lock();
+    test_mutex();
 
     // Test the Memory Manager
     test_memman();
