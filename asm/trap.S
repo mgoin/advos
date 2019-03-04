@@ -63,7 +63,7 @@ enable_interrupts:
 trap_handler:
   // t6 will be the temporary register used to hold the stack pointer as the
   // registers are all saved, so temporarily save it on the stack
-  sw   t6, 4(sp)
+  sw   t6, -4(sp)
 
   // |GLOBAL_CTX| is located in the bss section and will hold the register
   // context that was interrupted and be restored upon the completion of the
@@ -78,7 +78,7 @@ trap_handler:
   .endr
 
   // restore and save t6 to |GLOBAL_CTX|
-  lw  t6, 4(sp)
+  lw  t6, -4(sp)
   la  t5, GLOBAL_CTX
   sv  31, t5
 
@@ -93,7 +93,7 @@ trap_handler:
   // The checks to determine if the next instruction is offset 2 or 4
   // due to compressed instructions is done in Rust, save it to the stack
   // temporarily to restore register context
-  sw  a0, 4(sp)
+  sw  a0, -4(sp)
 
   // restore register context that was stored to |GLOBAL_CTX|
   la  t6, GLOBAL_CTX
@@ -106,14 +106,14 @@ trap_handler:
   .endr
 
   // Bring back the returned mepc pointer with the correct offset
-  lw t6, 4(sp)
+  lw t6, -4(sp)
 
   csrw mepc,t6
 
   // restore t6, saving t5 temporarily on the stack
-  sw t5, 4(sp)
+  sw t5, -4(sp)
   la t5, GLOBAL_CTX
   lv 31, t5
-  lw t5, 4(sp)
+  lw t5, -4(sp)
 
   mret
