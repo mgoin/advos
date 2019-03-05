@@ -14,14 +14,17 @@ pub struct HeapVecIterator<'a, T: 'a> {
 }
 
 impl<T> HeapVec<T> {
-    pub fn new(items: usize) -> HeapVec<T> {
+    // Returns a new, empty vector with n elements allocated
+    pub fn new(n: usize) -> HeapVec<T> {
         HeapVec {
-          buffer: MemManager::kmalloc(items * core::mem::size_of::<T>()).unwrap() as *mut T,
-          capacity: items,
+          buffer: MemManager::kmalloc(n * core::mem::size_of::<T>()).unwrap() as *mut T,
+          capacity: n,
           size: 0,
         }
     }
 
+    // Pushes data onto the top of the vector and increments size
+    // Returns Ok if it can do this or Err if there isn't enough room
     pub fn push(&mut self, data: T) -> Result<(), ()> {
         if self.size >= self.capacity {
             return Err(());
@@ -35,6 +38,7 @@ impl<T> HeapVec<T> {
         Ok(())
     }
 
+    // Pops off the top of the vector and returns that element
     pub fn pop(&mut self) -> Option<T> {
         match self.size {
             0 => None,
@@ -50,26 +54,31 @@ impl<T> HeapVec<T> {
         }
     }
 
+    // Returns the number of allocated space for the vector
     pub fn capacity(&self) -> usize {
         self.capacity
     }
 
+    // Returns the number of elements in the vector
     pub fn size(&self) -> usize {
         self.size
     }
 
+    // Returns the bottom of the vector as an iterator
     pub fn iter(&self) -> HeapVecIterator<T> {
         HeapVecIterator { vec: &self,
                           location: 0 }
     }
 }
 
+// Implements drop for HeapVec, which frees the memory for the vector
 impl<T> Drop for HeapVec<T> {
     fn drop(&mut self) {
         MemManager::kfree(self.buffer as u32).unwrap();
     }
 }
 
+// Implements the index trait for HeapVec
 impl<T> core::ops::Index<usize> for HeapVec<T> {
     type Output = T;
 
@@ -81,6 +90,7 @@ impl<T> core::ops::Index<usize> for HeapVec<T> {
     }
 }
 
+// Implements the mutable index trait for HeapVec
 impl<T> core::ops::IndexMut<usize> for HeapVec<T> {
     fn index_mut(&mut self, index: usize) -> &mut T {
         if index >= self.size {
@@ -90,6 +100,7 @@ impl<T> core::ops::IndexMut<usize> for HeapVec<T> {
     }
 }
 
+// Implements iterator trait for HeapVec
 impl<'a, T: 'a> Iterator for HeapVecIterator<'a, T> {
     type Item = &'a T;
 
