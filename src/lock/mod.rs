@@ -43,14 +43,14 @@ impl Mutex {
         }
 
         match test {
-          1 => Some(false),
-          0 => Some(true),
-          _ => None,
+            1 => Some(false),
+            0 => Some(true),
+            _ => None,
         }
     }
 
     pub fn get_state(&self) -> u32 {
-      self.state
+        self.state
     }
 }
 
@@ -62,6 +62,7 @@ pub struct Barrier {
 }
 
 impl Barrier {
+    // Create barrier expecting n processes to enter
     pub fn new(n: u32) -> Barrier {
         Barrier { arrive_counter: 0,
                   leave_counter: n,
@@ -69,6 +70,8 @@ impl Barrier {
                   mutex: Mutex::new() }
     }
 
+    // Checks process into the barrier, blocking until all n
+    // processes have hit the barrier
     pub fn barrier(&mut self, n: u32) {
         self.mutex.lock();
         if self.leave_counter == n {
@@ -107,6 +110,7 @@ pub struct Semaphore {
 }
 
 impl Semaphore {
+    // Creates semaphore expecting n processes
     pub fn new(size: u32) -> Semaphore {
         let mut s = Semaphore { n: size as i32,
                                 count_mutex: Mutex::new(),
