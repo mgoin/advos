@@ -290,14 +290,14 @@ fn main() {
     unsafe {
         enable_interrupts();
     }
-    println!("interrupts enabled");
+    println!("Interrupts enabled");
 
     // Intialize UART for reading/writing
-    print!("initializing UART...");
+    print!("Initializing UART...");
     console::uart::init().unwrap();
     println!("Done");
 
-    print!("initializing MemManager...");
+    print!("Initializing MemManager...");
     MemManager::init();
     println!("Done");
 
@@ -305,24 +305,24 @@ fn main() {
     {
         run_tests();
 
-        println!("testing interrupts");
+        println!("Testing interrupts");
         let clim = global_constants::CORE_LOCAL_INTERRUPT_MAP as *mut u32;
         let interrupt_mask: u32 = 0x008;
-        println!("sending software interrupt");
+        println!("Sending software interrupt");
         unsafe {
             core::ptr::write_volatile(clim, interrupt_mask);
         }
 
-        println!("sending ecall");
+        println!("Sending ecall");
         unsafe {
             asm!("ecall" ::::"volatile");
         }
 
-        println!("\n\ntests finished, exit qemu\n\n");
+        println!("\nTests finished, press Ctrl+A then C to exit qemu...");
         loop {}
     }
 
-    print!("initializing system timer...");
+    print!("Initializing system timer...");
     trap::timer::init().unwrap();
     println!("Done");
 
