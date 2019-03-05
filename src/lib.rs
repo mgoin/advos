@@ -18,6 +18,7 @@ mod console;
 mod global_constants;
 mod lock;
 mod memman;
+mod scheduler;
 mod trap;
 mod utils;
 
@@ -85,8 +86,36 @@ fn panic(info: &core::panic::PanicInfo) -> ! {
     abort()
 }
 
+fn echo_from_console() -> () {
+    if let Some(s) = console::Console::read() {
+        print!("\r\nread \"");
+        for c in s.iter() {
+            print!("{}", c);
+        }
+        println!("\" from uart");
+    }
+}
+
+#[cfg(feature = "testing")]
+fn test_println() -> () {
+    println!("### Testing println ###");
+
+    println!("Test lines: ");
+    println!("  Lowercase Hex: 15 = {:x}", 15);
+    println!("  Uppercase Hex: 26 = {:X}", 26);
+    println!("  Named References: for hello=7, reference hello yields {hello}",
+             hello = 7);
+    println!("  Octal: 12 = {:o}", 12);
+    println!("  Formatted Double: 1.23456 of width 3 is {:.3}", 1.23456);
+    println!("  Formatted Int: 42 of width 4 with leading zeroes is {:04}",
+             42);
+    println!();
+}
+
 #[cfg(feature = "testing")]
 fn test_mutex() -> () {
+    println!("### Testing Mutex ###");
+
     let mut m = lock::Mutex::new();
     print!("Locking mutex...");
     m.lock();
@@ -106,43 +135,18 @@ fn test_mutex() -> () {
     println!("Success");
 }
 
-fn echo_from_console() -> () {
-    if let Some(s) = console::Console::read() {
-        print!("\r\nread \"");
-        for c in s.iter() {
-            print!("{}", c);
-        }
-        println!("\" from uart");
-    }
-}
-
-#[cfg(feature = "testing")]
-fn test_println() -> () {
-    println!();
-    println!("Test lines: ");
-    println!("  Lowercase Hex: 15 = {:x}", 15);
-    println!("  Uppercase Hex: 26 = {:X}", 26);
-    println!("  Named References: for hello=7, reference hello yields {hello}",
-             hello = 7);
-    println!("  Octal: 12 = {:o}", 12);
-    println!("  Formatted Double: 1.23456 of width 3 is {:.3}", 1.23456);
-    println!("  Formatted Int: 42 of width 4 with leading zeroes is {:04}",
-             42);
-    println!();
-}
-
 #[cfg(feature = "testing")]
 fn test_memman() -> () {
+    println!("### Testing MemManager ###");
+
     unsafe {
         // Allocate an 16 byte quantity
-
         let p = MemManager::kmalloc(16).unwrap();
         let pnt = p as *mut u32;
         *pnt = 12;
         assert_eq!(*pnt, 12);
 
         // Allocate an 8-byte quantity
-
         let pt = MemManager::kmalloc(8).unwrap();
         let pts = pt as *mut u32;
         assert!(pt > p);
@@ -150,7 +154,6 @@ fn test_memman() -> () {
         assert_eq!(*pts, 8);
 
         // Allocate a 24 byte quantity
-
         let pt1 = MemManager::kmalloc(24).unwrap();
         assert!(pt1 > pt);
         let pt1s = pt1 as *mut u32;
@@ -158,12 +161,10 @@ fn test_memman() -> () {
         assert_eq!(*pt1s, 4);
 
         // Free the middle quantity that is 8 bytes
-
         assert!(MemManager::kfree(pt).is_ok());
 
         // Allocate a 24 byte quantity to show that
         // it won't take the 8 byte quantity in the middle
-
         let pt24 = MemManager::kmalloc(24).unwrap();
         assert!(pt24 != pt);
         let pts = pt24 as *mut u32;
@@ -171,7 +172,6 @@ fn test_memman() -> () {
         assert_eq!(*pts, 3);
 
         // Now show that a small enough block will take it
-
         let pt4 = MemManager::kmalloc(4).unwrap();
         assert!(pt4 == pt);
         let pt4s = pt4 as *mut u32;
@@ -179,21 +179,18 @@ fn test_memman() -> () {
         assert_eq!(*pt4s, 3);
 
         // Free them all
-
         assert!(MemManager::kfree(p).is_ok());
         assert!(MemManager::kfree(pt1).is_ok());
         assert!(MemManager::kfree(pt24).is_ok());
         assert!(MemManager::kfree(pt).is_ok());
 
         // Show that fragmentation doesn't let this go at the front
-
         let pt = MemManager::kmalloc(24).unwrap();
         let pts = pt as *mut u32;
         *pts = 17;
         assert_eq!(*pts, 17);
 
         // Free it, coalesce, and show it will go at the front
-
         assert!(MemManager::kfree(pt).is_ok());
         MemManager::kcoalesce();
         let pt = MemManager::kmalloc(24).unwrap();
@@ -202,13 +199,14 @@ fn test_memman() -> () {
         let pts = pt as *mut u32;
         *pts = 14;
         assert_eq!(*pts, 14);
-
         assert!(MemManager::kfree(pt).is_ok());
     }
 }
 
 #[cfg(feature = "testing")]
 fn test_stackvec() {
+    println!("### Testing stackvec ###");
+
     let mut storage: [u32; 32] = [0u32; 32];
     let mut vec = stackvec!(&mut storage);
 
@@ -244,6 +242,8 @@ fn test_stackvec() {
 
 #[cfg(feature = "testing")]
 fn test_heapvec() {
+    println!("### Testing HeapVec ###");
+
     let mut vec = HeapVec::new(10);
 
     assert_eq!(vec.capacity(), 10);
@@ -277,12 +277,16 @@ fn test_heapvec() {
 }
 
 #[cfg(feature = "testing")]
+fn test_scheduler() {}
+
+#[cfg(feature = "testing")]
 fn run_tests() {
     test_println();
     test_mutex();
     test_memman();
     test_stackvec();
     test_heapvec();
+    test_scheduler();
 }
 
 #[no_mangle]
@@ -305,15 +309,15 @@ fn main() {
     {
         run_tests();
 
-        println!("Testing interrupts");
+        println!("### Testing interrupts ###");
         let clim = global_constants::CORE_LOCAL_INTERRUPT_MAP as *mut u32;
         let interrupt_mask: u32 = 0x008;
-        println!("Sending software interrupt");
+        println!("### Sending software interrupt ###");
         unsafe {
             core::ptr::write_volatile(clim, interrupt_mask);
         }
 
-        println!("Sending ecall");
+        println!("### Sending ecall ###");
         unsafe {
             asm!("ecall" ::::"volatile");
         }
