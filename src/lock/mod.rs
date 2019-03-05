@@ -31,6 +31,23 @@ impl Mutex {
       asm!("amoswap.w.rl zero, zero, ($0)" :: "r"(&self.state) :: "volatile");
     }
   }
+
+  // Tries once to lock the mutex, returning true if the mutex was locked or
+  // false otherwise.
+  pub fn try_lock(&mut self) -> Option<bool> {
+    let mut test = 1;
+    unsafe {
+      asm!("amoswap.w.aq $0, $0, ($1)"
+           : "+r"(test) : "r"(&self.state) :: "volatile");
+    }
+
+    if test == 1 {
+      Some(true)
+    }
+    else {
+      Some(false)
+    }
+  }
 }
 
 pub struct Barrier {
