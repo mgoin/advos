@@ -1,10 +1,10 @@
-//Michael Goin, Jacob Rutherford, and Jonathan Ambrose
-//2-15-2019
-//This code implements a console. The read function will receive characters up
-//until a point that it receives an invalid control character or a '\r'. If it
-//gets a '\r', it returns the buffer. Otherwise, it returns a None.  The Write
-//trait is also implemented for the Console to allow it use fmt to handle the
-//formatting for the print! and println! macros.
+// Michael Goin, Jacob Rutherford, and Jonathan Ambrose
+// 2-15-2019
+// This code implements a console. The read function will receive characters up
+// until a point that it receives an invalid control character or a '\r'. If it
+// gets a '\r', it returns the buffer. Otherwise, it returns a None.  The Write
+// trait is also implemented for the Console to allow it use fmt to handle the
+// formatting for the print! and println! macros.
 
 use core::fmt::Error;
 
@@ -14,12 +14,12 @@ pub struct Console;
 
 const BUFFER_LENGTH: usize = 256;
 
-//This implements the Write trait for the console
+// This implements the Write trait for the console
 
 impl core::fmt::Write for Console {
-    //The Write trait simply must use a write_str function.
-    //For our implementation, we passed this off to a function
-    //internal to the console
+    // The Write trait simply must use a write_str function.
+    // For our implementation, we passed this off to a function
+    // internal to the console
 
     fn write_str(&mut self, s: &str) -> Result<(), Error> {
         Console::write(s)
@@ -27,9 +27,9 @@ impl core::fmt::Write for Console {
 }
 
 impl Console {
-    //The write function simply takes a string and writes its
-    //characters individually via the writechar function of the
-    //UART
+    // The write function simply takes a string and writes its
+    // characters individually via the writechar function of the
+    // UART
 
     pub fn write(s: &str) -> Result<(), Error> {
         for c in s.chars() {
@@ -54,8 +54,8 @@ impl Console {
         }
     }
 
-    //The read function of the console allows one to read continually
-    //until a new line is found
+    // The read function of the console allows one to read continually
+    // until a new line is found
 
     pub fn read() -> Option<[char; BUFFER_LENGTH]> {
         // fill the buffer with a temp value
@@ -86,17 +86,17 @@ impl Console {
                         // backspace (\u{0008} or ascii 0x08) and
                         // delete (\u{007f} or ascii 0x7f) character
                         '\u{8}' | '\u{7f}' => {
-                            //This if keeps us from getting a negative index
+                            // This if keeps us from getting a negative index
 
                             if next_char_index != 0 {
-                                //Makes the new last character '\0'
+                                // Makes the new last character '\0'
 
                                 buffer[next_char_index - 1] = '\0';
                                 next_char_index -= 1;
 
-                                //Here we essentially rewrite the buffer to the
-                                //screen. First we clear the line with spaces.
-                                //Then we reprint the buffer.
+                                // Here we essentially rewrite the buffer to the
+                                // screen. First we clear the line with spaces.
+                                // Then we reprint the buffer.
 
                                 Console::write_char('\r');
                                 for i in 0..next_char_index + 1 {
@@ -125,9 +125,9 @@ impl Console {
                         }
                     }
                 }
-                //If it isn't a control character, we make sure we aren't at the
-                //end of the buffer. If we aren't, we print the character, add
-                //it to the buffer, and increment the next index.
+                // If it isn't a control character, we make sure we aren't at the
+                // end of the buffer. If we aren't, we print the character, add
+                // it to the buffer, and increment the next index.
                 else {
                     if next_char_index != BUFFER_LENGTH {
                         Console::write_char(c);

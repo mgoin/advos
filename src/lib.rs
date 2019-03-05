@@ -1,15 +1,15 @@
-//Michael Goin, Jacob Rutherford, Jonathan Ambrose
-//2-13-2019
-//This iteration of lib contains the print! and println! macros
-//and tests these macros using the Console.
+// Michael Goin, Jacob Rutherford, Jonathan Ambrose
+// 2-13-2019
+// This iteration of lib contains the print! and println! macros
+// and tests these macros using the Console.
 
 #![feature(panic_info_message,
            allocator_api,
            asm,
            lang_items,
            compiler_builtins_lib)]
-//We are not permitted to use the standard library since it isn't written for
-//our operating system
+// We are not permitted to use the standard library since it isn't written for
+// our operating system
 #![no_std]
 #![no_mangle]
 #![allow(dead_code, unused_variables)]
@@ -31,7 +31,7 @@ use utils::heapvec::HeapVec;
 #[cfg(feature = "testing")]
 use utils::stackvec::StackVec;
 
-//The print! macro will print a string by calling write!
+// The print! macro will print a string by calling write!
 
 #[macro_export]
 macro_rules! print {
@@ -43,8 +43,8 @@ macro_rules! print {
     };
 }
 
-//The println! macro appends \r\n to the string and then calls
-//the print! macro
+// The println! macro appends \r\n to the string and then calls
+// the print! macro
 
 #[macro_export]
 macro_rules! println {
@@ -61,19 +61,19 @@ extern "C" {
     static HEAP_END: *const u32;
 }
 
-//The eh_personality tells our program how to unwind. We aren't going to write
-//that, so tell it to do nothing.
+// The eh_personality tells our program how to unwind. We aren't going to write
+// that, so tell it to do nothing.
 #[lang = "eh_personality"]
 pub extern "C" fn eh_personality() {}
 
-//Abort will be used when panic can't
+// Abort will be used when panic can't
 #[no_mangle]
 fn abort() -> ! {
     loop {}
 }
 
-//Panic handler will execute whenever our rust code panics. -> ! means that this
-//function won't return, so we have to make sure it doesn't.
+// Panic handler will execute whenever our rust code panics. -> ! means that this
+// function won't return, so we have to make sure it doesn't.
 #[panic_handler]
 fn panic(info: &core::panic::PanicInfo) -> ! {
     if let Some(loc) = info.location() {
@@ -134,14 +134,14 @@ fn test_println() -> () {
 #[cfg(feature = "testing")]
 fn test_memman() -> () {
     unsafe {
-        //Allocate an 16 byte quantity
+        // Allocate an 16 byte quantity
 
         let p = MemManager::kmalloc(16).unwrap();
         let pnt = p as *mut u32;
         *pnt = 12;
         assert_eq!(*pnt, 12);
 
-        //Allocate an 8-byte quantity
+        // Allocate an 8-byte quantity
 
         let pt = MemManager::kmalloc(8).unwrap();
         let pts = pt as *mut u32;
@@ -149,7 +149,7 @@ fn test_memman() -> () {
         *pts = 8;
         assert_eq!(*pts, 8);
 
-        //Allocate a 24 byte quantity
+        // Allocate a 24 byte quantity
 
         let pt1 = MemManager::kmalloc(24).unwrap();
         assert!(pt1 > pt);
@@ -157,12 +157,12 @@ fn test_memman() -> () {
         *pt1s = 4;
         assert_eq!(*pt1s, 4);
 
-        //Free the middle quantity that is 8 bytes
+        // Free the middle quantity that is 8 bytes
 
         assert!(MemManager::kfree(pt).is_ok());
 
-        //Allocate a 24 byte quantity to show that
-        //it won't take the 8 byte quantity in the middle
+        // Allocate a 24 byte quantity to show that
+        // it won't take the 8 byte quantity in the middle
 
         let pt24 = MemManager::kmalloc(24).unwrap();
         assert!(pt24 != pt);
@@ -170,7 +170,7 @@ fn test_memman() -> () {
         *pts = 3;
         assert_eq!(*pts, 3);
 
-        //Now show that a small enough block will take it
+        // Now show that a small enough block will take it
 
         let pt4 = MemManager::kmalloc(4).unwrap();
         assert!(pt4 == pt);
@@ -178,21 +178,21 @@ fn test_memman() -> () {
         *pt4s = 3;
         assert_eq!(*pt4s, 3);
 
-        //Free them all
+        // Free them all
 
         assert!(MemManager::kfree(p).is_ok());
         assert!(MemManager::kfree(pt1).is_ok());
         assert!(MemManager::kfree(pt24).is_ok());
         assert!(MemManager::kfree(pt).is_ok());
 
-        //Show that fragmentation doesn't let this go at the front
+        // Show that fragmentation doesn't let this go at the front
 
         let pt = MemManager::kmalloc(24).unwrap();
         let pts = pt as *mut u32;
         *pts = 17;
         assert_eq!(*pts, 17);
 
-        //Free it, coalesce, and show it will go at the front
+        // Free it, coalesce, and show it will go at the front
 
         assert!(MemManager::kfree(pt).is_ok());
         MemManager::kcoalesce();
