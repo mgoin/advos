@@ -1,5 +1,4 @@
-<<<<<<< HEAD
-// Michael Goin, Jacob Rutherford, Jiajia Zhao, Jonathan Ambrose
+// Michael Goin, Jacob Rutherford, Jonathan Ambrose
 //
 // 1-25-2019
 //
@@ -11,21 +10,6 @@
 // directly iterate over a StackVec.
 // Main was also implemented that allowed a user to interact with the data
 // structure for testing.
-=======
-/* Michael Goin, Jacob Rutherford, Jiajia Zhao, Jonathan Ambrose
- *
- * 1-25-2019
- *
- * The purpose of this lab is to implement a Stack-allocated vector,
- * including the ability to see the buffer size, the number of elements
- * in use, the ability to allocate a new StackVec, and the ability to push
- * and pop elements.
- * Furthermore, an iterator was to be implemented that allowed one to
- * directly iterate over a StackVec.
- * Main was also implemented that allowed a user to interact with the data
- * structure for testing.
- */
->>>>>>> 69590b1fe164f8de8a2570e5fe3a8f0e6c888b70
 
 pub struct StackVec<'a, T: 'a> {
     buffer: &'a mut [T], // Reference to the storage array
@@ -38,11 +22,7 @@ pub struct StackVecIterator<'a, T: 'a> {
 }
 
 impl<'a, T: 'a> StackVec<'a, T> {
-<<<<<<< HEAD
     // Returns a new vector that uses the given storage as storage
-=======
-    //Returns a new vector that uses the given storage as storage
->>>>>>> 69590b1fe164f8de8a2570e5fe3a8f0e6c888b70
     pub fn new(t: &'a mut [T]) -> StackVec<'a, T> {
         StackVec { buffer: &mut *t,
                    size: 0 }
@@ -147,95 +127,6 @@ macro_rules! stackvec {
     };
 }
 
-<<<<<<< HEAD
-// Example Usage:
-//
-// fn main() {
-// let mut array: [f64; 5] = [0.0; 5];
-// let mut sv = stackvec!(&mut array);
-//
-// Start command system loop for user
-// 'command: loop {
-// Get user input
-// print!("Enter a command ('quit' to quit): ");
-// io::stdout().flush().unwrap();
-// let mut input = String::new();
-// io::stdin().read_line(&mut input).unwrap();
-//
-// let command = scan_fmt!(&input, "{}", String);
-// if command == None {
-// println!("Invalid command.");
-// continue 'command;
-// }
-//
-// match command.unwrap().as_ref() {
-// "get" => {
-// Extract value from input
-// let index = scan_fmt!(&input, "get {}", usize).unwrap();
-// Check if index is valid and get value
-// if index >= sv.size() {
-// println!("Invalid index #{}", index);
-// } else {
-// println!("Value at {} = {:.04}", index, sv[index]);
-// }
-// },
-// "set" => {
-// Extract value from input
-// let (i, v) = scan_fmt!(&input, "set {} {}", usize, f64);
-// if i == None || v == None {
-// println!("Invalid command. (expected: set index value)");
-// continue 'command;
-// }
-// let (i, v) = (i.unwrap(), v.unwrap());
-// Check if index is valid and set value
-// if i >= sv.size() {
-// println!("Invalid index #{}", i);
-// } else {
-// sv[i] = v;
-// println!("Value at {} = {:.04}", i, sv[i]);
-// }
-// },
-// "print" => {
-// if sv.size() == 0 {
-// println!("Vector is empty.");
-// } else {
-// Print all elements of the vector
-// let mut counter = 0;
-// for i in sv.iter() {
-// println!("[{:03}] = {:.04}", counter, i);
-// counter += 1;
-// }
-// }
-// },
-// "push" => {
-// Extract value from input
-// let value = scan_fmt!(&input, "push {}", f64);
-// if value == None {
-// println!("Invalid command. (expected: push value)");
-// continue 'command;
-// }
-// let value = value.unwrap();
-// Check if value can be pushed back and push back
-// if sv.push(value).is_ok() {
-// println!("Pushed back {:.04}", value);
-// } else {
-// println!("Vector is full.");
-// }
-// },
-// "pop" => {
-// Check if top of vector could be popped and pop
-// if let Ok(value) = sv.pop() {
-// println!("Popped {:.04}", value);
-// } else {
-// println!("Vector is empty.");
-// }
-// },
-// "quit" => break 'command,
-// _ => println!("Unrecognized command."),
-// }
-// }
-// }
-=======
 /*
  * Example Usage:
  *
@@ -325,4 +216,3 @@ fn main() {
     }
 }
 */
->>>>>>> 69590b1fe164f8de8a2570e5fe3a8f0e6c888b70
