@@ -2,27 +2,26 @@
 //2-26-2019
 //This code implements the memory manager.
 
+use crate::{HEAP_END, HEAP_START};
 use core::ptr::{read_volatile, write_volatile};
-use crate::{HEAP_START, HEAP_END};
 
 pub struct Descriptor {
     len: u16,
-    taken: u16
+    taken: u16,
 }
 
 pub struct MemManager;
 
 impl MemManager {
-
     #[no_mangle]
 
     //Initialize by setting the first descriptor at the start of the heap
 
     pub fn init() -> () {
-
-        unsafe{
+        unsafe {
             let desc = HEAP_START as *mut Descriptor;
-            write_volatile(&mut ((*desc).len), ((HEAP_END as u32) - (HEAP_START as u32)) as u16);
+            write_volatile(&mut ((*desc).len),
+                           ((HEAP_END as u32) - (HEAP_START as u32)) as u16);
             write_volatile(&mut ((*desc).taken), 0);
         }
     }
@@ -34,7 +33,6 @@ impl MemManager {
 
     #[no_mangle]
     pub fn kmalloc(sz: usize) -> Result<u32, &'static str> {
-
         unsafe {
             let mut start = HEAP_START as u32;
             let end = HEAP_END as u32;
@@ -42,13 +40,12 @@ impl MemManager {
 
             //Get the size to a multiple of 4
 
-            let size = (sz as u32) + 3 - (sz as u32 - 1)%4 as u32;
+            let size = (sz as u32) + 3 - (sz as u32 - 1) % 4 as u32;
 
             //Start at heap_start
             //Go until we reach the end or break
 
             while start != end {
-
                 //Make a descriptor at the start
 
                 let desc = start as *mut Descriptor;
@@ -57,12 +54,12 @@ impl MemManager {
 
                 let t = read_volatile(&((*desc).taken)) as u16;
                 if t != 1 {
-
                     //Check if it's large enough
 
                     let s = read_volatile(&((*desc).len)) as u16;
-                    if s as u32 >= size+core::mem::size_of::<Descriptor>() as u32 {
-
+                    if s as u32 >=
+                       size + core::mem::size_of::<Descriptor>() as u32
+                    {
                         let len = read_volatile(&mut ((*desc).len)) as u16;
 
                         //If it is big enough, mark as taken
@@ -72,15 +69,32 @@ impl MemManager {
                         //Split the block if the block was big enough that it
                         //would leave more than a Descriptor
 
-                        let s2 = size+core::mem::size_of::<Descriptor>() as u32;
-                        if s2 != len as u32 && s2+core::mem::size_of::<Descriptor>() as u32 != len as u32 {
-                            write_volatile(&mut ((*desc).len), (size+core::mem::size_of::<Descriptor>() as u32) as u16);
+                        let s2 =
+                            size + core::mem::size_of::<Descriptor>() as u32;
+                        if s2 != len as u32 &&
+                           s2 + core::mem::size_of::<Descriptor>() as u32 !=
+                           len as u32
+                        {
+                            write_volatile(&mut ((*desc).len),
+                                           (size +
+                                            core::mem::size_of::<Descriptor>()
+                                            as u32)
+                                           as u16);
 
-                            let new_desc = (start + size + (core::mem::size_of::<Descriptor>() as u32)) as *mut Descriptor;
-                            let new_taken = read_volatile(&((*new_desc).taken)) as u16;
+                            let new_desc = (start +
+                                            size +
+                                            (core::mem::size_of::<Descriptor>()
+                                             as u32))
+                                           as *mut Descriptor;
+                            let new_taken =
+                                read_volatile(&((*new_desc).taken)) as u16;
                             if new_taken != 1 {
-                                write_volatile(&mut ((*new_desc).taken), 0 as u16);
-                                write_volatile(&mut ((*new_desc).len), s - read_volatile(&((*desc).len)) as u16);
+                                write_volatile(&mut ((*new_desc).taken),
+                                               0 as u16);
+                                write_volatile(&mut ((*new_desc).len),
+                                               s -
+                                               read_volatile(&((*desc).len))
+                                               as u16);
                             }
                         }
 
@@ -98,12 +112,10 @@ impl MemManager {
 
             //If the pointer isn't 0, we return it
 
-            if pnt !=0 {
+            if pnt != 0 {
                 Ok(pnt)
             }
-
             //Otherwise, return an error
-
             else {
                 Err("Not enough memory")
             }
@@ -116,15 +128,14 @@ impl MemManager {
     pub fn kfree(p: u32) -> Result<(), &'static str> {
         let mut badpnt = 0 as u16;
         unsafe {
-            let desc = (p - core::mem::size_of::<Descriptor>() as u32) as *mut Descriptor;
+            let desc = (p - core::mem::size_of::<Descriptor>() as u32)
+                       as *mut Descriptor;
 
             //If the pointer isn't taken, it's a bad pointer
 
             if read_volatile(&((*desc).taken)) != 1 {
                 badpnt = 1;
-            }
-            else {
-
+            } else {
                 //Set the descriptor to not be taken
 
                 write_volatile(&mut ((*desc).taken), 0 as u16);
@@ -132,8 +143,7 @@ impl MemManager {
         }
         if badpnt == 0 {
             Ok(())
-        }
-        else {
+        } else {
             Err("Bad pointer")
         }
     }
@@ -143,7 +153,6 @@ impl MemManager {
 
     #[no_mangle]
     pub fn kcoalesce() -> () {
-
         unsafe {
             let mut start = HEAP_START as u32;
             let end = HEAP_END as u32;
@@ -153,7 +162,6 @@ impl MemManager {
             //Go until we reach the end or break
 
             while next != end {
-
                 //Make a descriptor at the start
 
                 let desc = start as *mut Descriptor;
@@ -173,9 +181,10 @@ impl MemManager {
                     let t2 = read_volatile(&((*desc2).taken)) as u16;
 
                     if t != 1 && t2 != 1 {
-                        write_volatile(&mut ((*desc).len), read_volatile(&((*desc).len)) + read_volatile(&((*desc2).len)));
-                    }
-                    else {
+                        write_volatile(&mut ((*desc).len),
+                                       read_volatile(&((*desc).len)) +
+                                       read_volatile(&((*desc2).len)));
+                    } else {
                         //If we couldn't merge, move to the next element
                         start = next;
                     }

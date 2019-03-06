@@ -3,22 +3,26 @@
 //This iteration of lib contains the print! and println! macros
 //and tests these macros using the Console.
 
-#![feature(panic_info_message,allocator_api,asm,lang_items,compiler_builtins_lib)]
+#![feature(panic_info_message,
+           allocator_api,
+           asm,
+           lang_items,
+           compiler_builtins_lib)]
 //We are not permitted to use the standard library since it isn't written for
 //our operating system
 #![no_std]
 #![no_mangle]
-#![allow(dead_code,unused_variables)]
+#![allow(dead_code, unused_variables)]
 
 mod console;
 mod global_constants;
-mod trap;
 mod lock;
 mod memman;
+mod trap;
 
 use console::Console;
-use memman::MemManager;
 use core::fmt::Write;
+use memman::MemManager;
 
 //The print! macro will print a string by calling write!
 
@@ -45,21 +49,20 @@ macro_rules! println {
 }
 
 extern "C" {
-  fn enable_interrupts() -> ();
-  static HEAP_START: *const u32;
-  static HEAP_END: *const u32;
+    fn enable_interrupts() -> ();
+    static HEAP_START: *const u32;
+    static HEAP_END: *const u32;
 }
 
 //The eh_personality tells our program how to unwind. We aren't going to write
 //that, so tell it to do nothing.
 #[lang = "eh_personality"]
-pub extern fn eh_personality() {}
+pub extern "C" fn eh_personality() {}
 
 //Abort will be used when panic can't
 #[no_mangle]
-fn abort() -> !
-{
-   loop {}
+fn abort() -> ! {
+    loop {}
 }
 
 //Panic handler will execute whenever our rust code panics. -> ! means that this
@@ -68,16 +71,21 @@ fn abort() -> !
 fn panic(info: &core::panic::PanicInfo) -> ! {
     if let Some(loc) = info.location() {
         println!("PANIC in file {}: line {} column {}",
-            loc.file(), loc.line(), loc.column());
+                 loc.file(),
+                 loc.line(),
+                 loc.column());
     }
     abort()
 }
 
 fn test_mutex() -> () {
     let mut m = lock::Mutex::new();
-    println!("Locking mutex..."); m.lock();
-    println!("Unlocking mutex..."); m.unlock();
-    println!("Locking mutex again..."); m.lock();
+    println!("Locking mutex...");
+    m.lock();
+    println!("Unlocking mutex...");
+    m.unlock();
+    println!("Locking mutex again...");
+    m.lock();
 }
 
 fn echo_from_console() -> () {
@@ -95,10 +103,12 @@ fn test_println() -> () {
     println!("Test lines: ");
     println!("  Lowercase Hex: 15 = {:x}", 15);
     println!("  Uppercase Hex: 26 = {:X}", 26);
-    println!("  Named References: for hello=7, reference hello yields {hello}", hello=7);
+    println!("  Named References: for hello=7, reference hello yields {hello}",
+             hello = 7);
     println!("  Octal: 12 = {:o}", 12);
     println!("  Formatted Double: 1.23456 of width 3 is {:.3}", 1.23456);
-    println!("  Formatted Int: 42 of width 4 with leading zeroes is {:04}", 42);
+    println!("  Formatted Int: 42 of width 4 with leading zeroes is {:04}",
+             42);
     println!();
 }
 
@@ -210,7 +220,9 @@ fn test_memman() -> () {
 
 #[no_mangle]
 fn main() {
-    unsafe { enable_interrupts(); }
+    unsafe {
+        enable_interrupts();
+    }
     println!("interrupts enabled");
 
     // Intialize UART for reading/writing
@@ -229,7 +241,9 @@ fn main() {
     let interrupt_mask: u32 = 0x008;
 
     println!("sending software interrupt");
-    unsafe { core::ptr::write_volatile(clim, interrupt_mask); }
+    unsafe {
+        core::ptr::write_volatile(clim, interrupt_mask);
+    }
 
     println!("timer initialized");
     trap::timer::init().unwrap();

@@ -12,12 +12,11 @@ pub mod uart;
 
 pub struct Console;
 
-const BUFFER_LENGTH : usize = 256;
+const BUFFER_LENGTH: usize = 256;
 
 //This implements the Write trait for the console
 
 impl core::fmt::Write for Console {
-
     //The Write trait simply must use a write_str function.
     //For our implementation, we passed this off to a function
     //internal to the console
@@ -28,7 +27,6 @@ impl core::fmt::Write for Console {
 }
 
 impl Console {
-
     //The write function simply takes a string and writes its
     //characters individually via the writechar function of the
     //UART
@@ -60,16 +58,14 @@ impl Console {
     //until a new line is found
 
     pub fn read() -> Option<[char; BUFFER_LENGTH]> {
-
         // fill the buffer with a temp value
 
-        let mut buffer: [char; BUFFER_LENGTH] = ['\0';BUFFER_LENGTH];
+        let mut buffer: [char; BUFFER_LENGTH] = ['\0'; BUFFER_LENGTH];
         let mut next_char_index = 0;
 
         // Read will buffer input until the user hits enter
 
         loop {
-
             // If we read a control character, we print the character.
             // If it was '\r', we return the buffer. If it was an arrow
             // key, we move the cursor and the position in the buffer.
@@ -80,24 +76,19 @@ impl Console {
                 let c = b as char;
                 if c.is_control() {
                     match c {
-
                         // Carriage return is given when the enter key is
                         // pressed, which is the trigger to return the buffer
                         // to the caller.
-
                         '\r' => {
                             return Some(buffer);
-                        },
+                        }
 
                         // backspace (\u{0008} or ascii 0x08) and
                         // delete (\u{007f} or ascii 0x7f) character
-
-                        '\u{8}'|'\u{7f}' => {
-
+                        '\u{8}' | '\u{7f}' => {
                             //This if keeps us from getting a negative index
 
                             if next_char_index != 0 {
-
                                 //Makes the new last character '\0'
 
                                 buffer[next_char_index - 1] = '\0';
@@ -108,7 +99,7 @@ impl Console {
                                 //Then we reprint the buffer.
 
                                 Console::write_char('\r');
-                                for i in 0..next_char_index+1 {
+                                for i in 0..next_char_index + 1 {
                                     Console::write_char(' ');
                                 }
 
@@ -117,29 +108,26 @@ impl Console {
                                     Console::write_char(*c);
                                 }
                             }
-                        },
+                        }
 
                         //  '\t' is considered a control character, simplly add
                         //  it to the buffer and continue since it is printable.
                         '\t' => {
-                          Console::write_char('\t');
-                          buffer[next_char_index] = '\t';
-                          next_char_index += 1;
-                        },
+                            Console::write_char('\t');
+                            buffer[next_char_index] = '\t';
+                            next_char_index += 1;
+                        }
 
                         // Unhandled control charaters
-
                         _ => {
                             Console::write_char('\n');
                             return None;
-                        },
+                        }
                     }
                 }
-
                 //If it isn't a control character, we make sure we aren't at the
                 //end of the buffer. If we aren't, we print the character, add
                 //it to the buffer, and increment the next index.
-
                 else {
                     if next_char_index != BUFFER_LENGTH {
                         Console::write_char(c);
