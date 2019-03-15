@@ -42,6 +42,12 @@ gdb: $(OUT)
 	$(QEMU) $(QEMUARGS) -S -s &
 	$(GDB) $(OUT) -ex "target remote localhost:1234"
 
+test: Makefile $(ASM_OBJECTS) $(LDSFILE)
+	$(XARGO) build --target=$(TARGET) --features "testing"
+	$(CC) $(LDFLAGS) -o $(OUT) $(ASM_OBJECTS) $(LIBS)
+	$(QEMU) $(QEMUARGS)
+	$(MAKE) clean
+
 .PHONY: clean
 
 clean: 

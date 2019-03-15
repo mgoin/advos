@@ -22,6 +22,8 @@ mod trap;
 
 use console::Console;
 use core::fmt::Write;
+
+#[cfg(feature = "testing")]
 use memman::MemManager;
 
 //The print! macro will print a string by calling write!
@@ -78,6 +80,7 @@ fn panic(info: &core::panic::PanicInfo) -> ! {
     abort()
 }
 
+#[cfg(feature = "testing")]
 fn test_mutex() -> () {
     let mut m = lock::Mutex::new();
     println!("Locking mutex...");
@@ -98,6 +101,7 @@ fn echo_from_console() -> () {
     }
 }
 
+#[cfg(feature = "testing")]
 fn test_println() -> () {
     println!();
     println!("Test lines: ");
@@ -112,7 +116,7 @@ fn test_println() -> () {
     println!();
 }
 
-#[no_mangle]
+#[cfg(feature = "testing")]
 fn test_memman() -> () {
     unsafe {
         MemManager::init();
@@ -218,6 +222,14 @@ fn test_memman() -> () {
     }
 }
 
+#[cfg(feature = "testing")]
+fn run_tests() {
+    test_println();
+    test_mutex();
+    test_memman();
+    abort();
+}
+
 #[no_mangle]
 fn main() {
     unsafe {
@@ -228,21 +240,19 @@ fn main() {
     // Intialize UART for reading/writing
     console::uart::init().unwrap();
 
-    // Test lines for formatting with println!
-    test_println();
-
-    // Test mutex locking and unlocking
-    test_mutex();
-
-    // Test the Memory Manager
-    test_memman();
+    #[cfg(feature = "testing")]
+    run_tests();
 
     let clim = global_constants::CORE_LOCAL_INTERRUPT_MAP as *mut u32;
     let interrupt_mask: u32 = 0x008;
-
     println!("sending software interrupt");
     unsafe {
         core::ptr::write_volatile(clim, interrupt_mask);
+    }
+
+    println!("sending ecall");
+    unsafe {
+        asm!("ecall" ::::"volatile");
     }
 
     println!("timer initialized");

@@ -15,4 +15,8 @@ panic = "unwind"
 [lib]
 crate-type = ["staticlib"]
 
+[features]
+default = []
+testing = []
+
 [dependencies]
