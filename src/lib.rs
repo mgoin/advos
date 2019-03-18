@@ -241,18 +241,20 @@ fn main() {
     console::uart::init().unwrap();
 
     #[cfg(feature = "testing")]
-    run_tests();
+    {
+        run_tests();
 
-    let clim = global_constants::CORE_LOCAL_INTERRUPT_MAP as *mut u32;
-    let interrupt_mask: u32 = 0x008;
-    println!("sending software interrupt");
-    unsafe {
-        core::ptr::write_volatile(clim, interrupt_mask);
-    }
+        let clim = global_constants::CORE_LOCAL_INTERRUPT_MAP as *mut u32;
+        let interrupt_mask: u32 = 0x008;
+        println!("sending software interrupt");
+        unsafe {
+            core::ptr::write_volatile(clim, interrupt_mask);
+        }
 
-    println!("sending ecall");
-    unsafe {
-        asm!("ecall" ::::"volatile");
+        println!("sending ecall");
+        unsafe {
+            asm!("ecall" ::::"volatile");
+        }
     }
 
     println!("timer initialized");
