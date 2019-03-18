@@ -23,7 +23,6 @@ mod trap;
 use console::Console;
 use core::fmt::Write;
 
-#[cfg(feature = "testing")]
 use memman::MemManager;
 
 //The print! macro will print a string by calling write!
@@ -122,8 +121,6 @@ fn test_println() -> () {
 #[cfg(feature = "testing")]
 fn test_memman() -> () {
     unsafe {
-        MemManager::init();
-
         //Allocate an 16 byte quantity
 
         let p = MemManager::kmalloc(16).unwrap();
@@ -242,6 +239,10 @@ fn main() {
     // Intialize UART for reading/writing
     print!("initializing UART...");
     console::uart::init().unwrap();
+    println!("Done");
+
+    print!("initializing MemManager...");
+    MemManager::init();
     println!("Done");
 
     #[cfg(feature = "testing")]
