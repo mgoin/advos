@@ -1,5 +1,9 @@
 // Master clock frequency in hertz
+#[cfg(not(feature = "board"))]
 pub const CLOCK_FREQ: u64 = 10_000_000;
+
+#[cfg(feature = "board")]
+pub const CLOCK_FREQ: u64 = 17_422_745;
 
 // Address of the UART for mmio
 pub const UART_ADDR: u64 = 0x1001_3000;

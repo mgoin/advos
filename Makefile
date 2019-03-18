@@ -48,6 +48,10 @@ test: Makefile $(ASM_OBJECTS) $(LDSFILE)
 	$(QEMU) $(QEMUARGS)
 	$(MAKE) clean
 
+board: Makefile $(ASM_OBJECTS) $(LDSFILE)
+	$(XARGO) build --target=$(TARGET) --features "board"
+	$(CC) $(LDFLAGS) -o $(OUT) $(ASM_OBJECTS) $(LIBS)
+
 .PHONY: clean
 
 clean: 
