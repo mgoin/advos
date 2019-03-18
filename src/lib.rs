@@ -83,12 +83,15 @@ fn panic(info: &core::panic::PanicInfo) -> ! {
 #[cfg(feature = "testing")]
 fn test_mutex() -> () {
     let mut m = lock::Mutex::new();
-    println!("Locking mutex...");
+    print!("Locking mutex...");
     m.lock();
-    println!("Unlocking mutex...");
+    println!("Done");
+    print!("Unlocking mutex...");
     m.unlock();
-    println!("Locking mutex again...");
+    println!("Done");
+    print!("Locking mutex again...");
     m.lock();
+    println!("Done");
 }
 
 fn echo_from_console() -> () {
@@ -227,7 +230,6 @@ fn run_tests() {
     test_println();
     test_mutex();
     test_memman();
-    abort();
 }
 
 #[no_mangle]
@@ -238,12 +240,15 @@ fn main() {
     println!("interrupts enabled");
 
     // Intialize UART for reading/writing
+    print!("initializing UART...");
     console::uart::init().unwrap();
+    println!("Done");
 
     #[cfg(feature = "testing")]
     {
         run_tests();
 
+        println!("testing interrupts");
         let clim = global_constants::CORE_LOCAL_INTERRUPT_MAP as *mut u32;
         let interrupt_mask: u32 = 0x008;
         println!("sending software interrupt");
@@ -255,11 +260,16 @@ fn main() {
         unsafe {
             asm!("ecall" ::::"volatile");
         }
+
+        println!("\n\ntests finished, exit qemu\n\n");
+        loop {}
     }
 
-    println!("timer initialized");
+    print!("initializing system timer...");
     trap::timer::init().unwrap();
+    println!("Done");
 
+    println!("Type into the console:");
     loop {
         echo_from_console();
     }
