@@ -84,13 +84,20 @@ fn test_mutex() -> () {
     let mut m = lock::Mutex::new();
     print!("Locking mutex...");
     m.lock();
-    println!("Done");
+    assert_eq!(m.get_state(), 1);
+    println!("Success");
+    print!("Trying to lock mutex again...");
+    let res1 = m.try_lock();
+    assert_eq!(res1, Some(false));
+    println!("Success");
     print!("Unlocking mutex...");
     m.unlock();
-    println!("Done");
-    print!("Locking mutex again...");
-    m.lock();
-    println!("Done");
+    assert_eq!(m.get_state(), 0);
+    println!("Success");
+    print!("Trying to lock mutex again...");
+    let res = m.try_lock();
+    assert_eq!(res, Some(true));
+    println!("Success");
 }
 
 fn echo_from_console() -> () {
@@ -125,100 +132,72 @@ fn test_memman() -> () {
 
         let p = MemManager::kmalloc(16).unwrap();
         let pnt = p as *mut u32;
-        println!("Allocated 16 bytes at Address {:}", p);
-        println!("Value from pnt {:}", *pnt);
         *pnt = 12;
-        println!("Value from pnt {:}", *pnt);
-        println!();
+        assert_eq!(*pnt, 12);
 
         //Allocate an 8-byte quantity
 
         let pt = MemManager::kmalloc(8).unwrap();
         let pts = pt as *mut u32;
-        println!("Allocated 8 bytes at Address {:}", pt);
-        println!("Value from pnt {:}", *pts);
+        assert!(pt > p);
         *pts = 8;
-        println!("Value from pnt {:}", *pts);
-        println!();
+        assert_eq!(*pts, 8);
 
         //Allocate a 24 byte quantity
 
         let pt1 = MemManager::kmalloc(24).unwrap();
+        assert!(pt1 > pt);
         let pt1s = pt1 as *mut u32;
-        println!("Allocated 24 bytes at Address {:}", pt1);
-        println!("Value from pnt {:}", *pt1s);
         *pt1s = 4;
-        println!("Value from pnt {:}", *pt1s);
-        println!();
+        assert_eq!(*pt1s, 4);
 
         //Free the middle quantity that is 8 bytes
 
-        MemManager::kfree(pt).unwrap();
-        println!("Freed Address {:}", pt);
-        println!();
+        assert!(MemManager::kfree(pt).is_ok());
 
         //Allocate a 24 byte quantity to show that
         //it won't take the 8 byte quantity in the middle
 
-        let pt = MemManager::kmalloc(24).unwrap();
-        let pts = pt as *mut u32;
-        println!("Allocated 24 bytes at Address {:}", pt);
-        println!("Value from pnt {:}", *pts);
+        let pt24 = MemManager::kmalloc(24).unwrap();
+        assert!(pt24 != pt);
+        let pts = pt24 as *mut u32;
         *pts = 3;
-        println!("Value from pnt {:}", *pts);
-        println!();
+        assert_eq!(*pts, 3);
 
         //Now show that a small enough block will take it
 
-        let pt2 = MemManager::kmalloc(4).unwrap();
-        let pt2s = pt2 as *mut u32;
-        println!("Allocated 4 bytes at Address {:}", pt2);
-        println!("Value from pnt {:}", *pt2s);
-        *pt2s = 3;
-        println!("Value from pnt {:}", *pt2s);
-        println!();
+        let pt4 = MemManager::kmalloc(4).unwrap();
+        assert!(pt4 == pt);
+        let pt4s = pt4 as *mut u32;
+        *pt4s = 3;
+        assert_eq!(*pt4s, 3);
 
         //Free them all
 
-        MemManager::kfree(p).unwrap();
-        MemManager::kfree(pt1).unwrap();
-        MemManager::kfree(pt2).unwrap();
-        MemManager::kfree(pt).unwrap();
-        println!("Freed Address {:}", p);
-        println!("Freed Address {:}", pt);
-        println!("Freed Address {:}", pt1);
-        println!("Freed Address {:}", pt2);
-        println!();
+        assert!(MemManager::kfree(p).is_ok());
+        assert!(MemManager::kfree(pt1).is_ok());
+        assert!(MemManager::kfree(pt24).is_ok());
+        assert!(MemManager::kfree(pt).is_ok());
 
         //Show that fragmentation doesn't let this go at the front
 
         let pt = MemManager::kmalloc(24).unwrap();
         let pts = pt as *mut u32;
-        println!("Allocated 24 bytes at Address {:}", pt);
-        println!("Value from pnt {:}", *pts);
         *pts = 17;
-        println!("Value from pnt {:}", *pts);
-        println!();
+        assert_eq!(*pts, 17);
 
         //Free it, coalesce, and show it will go at the front
 
-        MemManager::kfree(pt).unwrap();
-        println!("Freed Address {:}", pt);
-        println!();
+        assert!(MemManager::kfree(pt).is_ok());
         MemManager::kcoalesce();
-        println!("Coalesced Free List");
-        println!();
         let pt = MemManager::kmalloc(24).unwrap();
-        let pts = pt as *mut u32;
-        println!("Allocated 24 bytes at Address {:}", pt);
-        println!("Value from pnt {:}", *pts);
-        *pts = 14;
-        println!("Value from pnt {:}", *pts);
-        println!();
+        assert_eq!(p, pt);
 
-        MemManager::kfree(pt).unwrap();
-        println!("Freed Address {:}", pt);
-        println!();
+        let pts = pt as *mut u32;
+        *pts = 14;
+        assert_eq!(*pts, 14);
+
+        assert!(MemManager::kfree(pt).is_ok());
     }
 }
 
