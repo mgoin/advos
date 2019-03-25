@@ -18,12 +18,14 @@ mod console;
 mod global_constants;
 mod lock;
 mod memman;
+mod utils;
 mod trap;
 
 use console::Console;
 use core::fmt::Write;
 
 use memman::MemManager;
+use utils::stackvec::StackVec;
 
 //The print! macro will print a string by calling write!
 
@@ -202,10 +204,33 @@ fn test_memman() -> () {
 }
 
 #[cfg(feature = "testing")]
+fn test_stackvec() {
+  let mut storage: [u32; 32] = [0u32; 32];
+  let mut vec = stackvec!(&mut storage);
+
+  assert_eq!(vec.buffer_size(), 32);
+  assert_eq!(vec.size(), 0);
+
+  vec.push(23).unwrap();
+  assert_eq!(vec.size(), 1);
+  vec.push(12).unwrap();
+  assert_eq!(vec.size(), 2);
+
+  assert_eq!(vec[0], 23);
+  assert_eq!(vec[1], 12);
+
+  let t = vec.pop().unwrap();
+  assert_eq!(*t, 12);
+  assert_eq!(vec.size(), 1);
+
+}
+
+#[cfg(feature = "testing")]
 fn run_tests() {
     test_println();
     test_mutex();
     test_memman();
+    test_stackvec();
 }
 
 #[no_mangle]
