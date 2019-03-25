@@ -48,6 +48,10 @@ impl Mutex {
             Some(false)
         }
     }
+
+    pub fn get_state(&self) -> u32 {
+      self.state
+    }
 }
 
 pub struct Barrier {
