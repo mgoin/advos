@@ -42,10 +42,10 @@ impl Mutex {
            : "+r"(test) : "r"(&self.state) :: "volatile");
         }
 
-        if test == 1 {
-            Some(true)
-        } else {
-            Some(false)
+        match test {
+          1 => Some(false),
+          0 => Some(true),
+          _ => None,
         }
     }
 
