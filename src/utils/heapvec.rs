@@ -8,8 +8,8 @@ pub struct HeapVec<T> {
     size: usize,
 }
 
-pub struct HeapVecIterator<T> {
-    vec: HeapVec<T>,
+pub struct HeapVecIterator<'a, T: 'a> {
+    vec: &'a HeapVec<T>,
     location: usize,
 }
 
@@ -57,6 +57,12 @@ impl<T> HeapVec<T> {
     pub fn size(&self) -> usize {
         self.size
     }
+
+    pub fn iter(&self) -> HeapVecIterator<T> {
+        HeapVecIterator { vec: &self,
+                          location: 0,
+        }
+    }
 }
 
 impl<T> Drop for HeapVec<T> {
@@ -82,5 +88,20 @@ impl<T> core::ops::IndexMut<usize> for HeapVec<T> {
           panic!("HeapVec: index out of bounds");
         }
         unsafe { &mut(*self.buffer.add(index)) }
+    }
+}
+
+impl<'a, T: 'a> Iterator for HeapVecIterator<'a, T> {
+    type Item = &'a T;
+
+    fn next(&mut self) -> Option<&'a T> {
+        if self.location < self.vec.size {
+            let ret = &self.vec[self.location];
+            self.location += 1;
+            Some(&ret)
+        }
+        else {
+            None
+        }
     }
 }
