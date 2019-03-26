@@ -1,3 +1,3 @@
 #![macro_use]
-pub mod stackvec;
 pub mod heapvec;
+pub mod stackvec;

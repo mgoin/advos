@@ -15,7 +15,7 @@ pub struct HeapVecIterator<'a, T: 'a> {
 
 impl<T> HeapVec<T> {
     pub fn new(items: usize) -> HeapVec<T> {
-        HeapVec { 
+        HeapVec {
           buffer: MemManager::kmalloc(items * core::mem::size_of::<T>()).unwrap() as *mut T,
           capacity: items,
           size: 0,
@@ -36,18 +36,18 @@ impl<T> HeapVec<T> {
     }
 
     pub fn pop(&mut self) -> Option<T> {
-         match self.size {
-           0 => None,
-           _ if self.size > 0 => {
-             let d: T;
-             unsafe {
-                d = read_volatile(self.buffer.add(self.size - 1));
-             }
-             self.size -= 1;
-             Some(d)
-           },
-           _ => None,
-         }
+        match self.size {
+            0 => None,
+            _ if self.size > 0 => {
+                let d: T;
+                unsafe {
+                    d = read_volatile(self.buffer.add(self.size - 1));
+                }
+                self.size -= 1;
+                Some(d)
+            }
+            _ => None,
+        }
     }
 
     pub fn capacity(&self) -> usize {
@@ -60,14 +60,13 @@ impl<T> HeapVec<T> {
 
     pub fn iter(&self) -> HeapVecIterator<T> {
         HeapVecIterator { vec: &self,
-                          location: 0,
-        }
+                          location: 0 }
     }
 }
 
 impl<T> Drop for HeapVec<T> {
     fn drop(&mut self) {
-      MemManager::kfree(self.buffer as u32).unwrap();
+        MemManager::kfree(self.buffer as u32).unwrap();
     }
 }
 
@@ -76,7 +75,7 @@ impl<T> core::ops::Index<usize> for HeapVec<T> {
 
     fn index(&self, index: usize) -> &T {
         if index >= self.size {
-          panic!("HeapVec: index out of bounds");
+            panic!("HeapVec: index out of bounds");
         }
         unsafe { &(*self.buffer.add(index)) }
     }
@@ -85,9 +84,9 @@ impl<T> core::ops::Index<usize> for HeapVec<T> {
 impl<T> core::ops::IndexMut<usize> for HeapVec<T> {
     fn index_mut(&mut self, index: usize) -> &mut T {
         if index >= self.size {
-          panic!("HeapVec: index out of bounds");
+            panic!("HeapVec: index out of bounds");
         }
-        unsafe { &mut(*self.buffer.add(index)) }
+        unsafe { &mut (*self.buffer.add(index)) }
     }
 }
 
@@ -99,8 +98,7 @@ impl<'a, T: 'a> Iterator for HeapVecIterator<'a, T> {
             let ret = &self.vec[self.location];
             self.location += 1;
             Some(&ret)
-        }
-        else {
+        } else {
             None
         }
     }
