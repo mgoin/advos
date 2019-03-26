@@ -28,6 +28,8 @@ use memman::MemManager;
 
 #[cfg(feature = "testing")]
 use utils::stackvec::StackVec;
+#[cfg(feature = "testing")]
+use utils::heapvec::HeapVec;
 
 //The print! macro will print a string by calling write!
 
@@ -241,11 +243,35 @@ fn test_stackvec() {
 }
 
 #[cfg(feature = "testing")]
+fn test_heapvec() {
+    let mut vec = HeapVec::new(10);
+
+    assert_eq!(vec.capacity(), 10);
+    assert_eq!(vec.size(), 0);
+
+    vec.push(23).unwrap();
+    assert_eq!(vec.size(), 1);
+    vec.push(12).unwrap();
+    assert_eq!(vec.size(), 2);
+
+    assert_eq!(vec[0], 23);
+    assert_eq!(vec[1], 12);
+
+    let mut t = vec.pop().unwrap();
+    assert_eq!(t, 12);
+    assert_eq!(vec.size(), 1);
+    t = vec.pop().unwrap();
+    assert_eq!(t, 23);
+    assert_eq!(vec.size(), 0);
+}
+
+#[cfg(feature = "testing")]
 fn run_tests() {
     test_println();
     test_mutex();
     test_memman();
     test_stackvec();
+    test_heapvec();
 }
 
 #[no_mangle]
