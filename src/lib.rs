@@ -25,6 +25,8 @@ use console::Console;
 use core::fmt::Write;
 
 use memman::MemManager;
+
+#[cfg(feature = "testing")]
 use utils::stackvec::StackVec;
 
 //The print! macro will print a string by calling write!
