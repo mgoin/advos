@@ -43,14 +43,14 @@ impl Mutex {
         }
 
         match test {
-          1 => Some(false),
-          0 => Some(true),
-          _ => None,
+            1 => Some(false),
+            0 => Some(true),
+            _ => None,
         }
     }
 
     pub fn get_state(&self) -> u32 {
-      self.state
+        self.state
     }
 }
 

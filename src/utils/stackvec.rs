@@ -12,23 +12,21 @@
  * structure for testing.
  */
 
-pub struct StackVec<'a, T: 'a>
-{
+pub struct StackVec<'a, T: 'a> {
     buffer: &'a mut [T], // Reference to the storage array
-    size: usize          // Total number of used elements in the vector
+    size: usize,         // Total number of used elements in the vector
 }
 
-pub struct StackVecIterator<'a, T: 'a>
-{
-     vector: &'a StackVec<'a, T>, // The vector to iterate across.
-     location: usize,             // The element the iterator is currently on.
+pub struct StackVecIterator<'a, T: 'a> {
+    vector: &'a StackVec<'a, T>, // The vector to iterate across.
+    location: usize,             // The element the iterator is currently on.
 }
 
-impl <'a, T: 'a> StackVec<'a, T> {
-
+impl<'a, T: 'a> StackVec<'a, T> {
     //Returns a new vector that uses the given storage as storage
     pub fn new(t: &'a mut [T]) -> StackVec<'a, T> {
-        StackVec { buffer: &mut *t, size: 0 }
+        StackVec { buffer: &mut *t,
+                   size: 0 }
     }
 
     //Returns the number of elements in the vector
@@ -45,7 +43,9 @@ impl <'a, T: 'a> StackVec<'a, T> {
     //elements in the vector by 1.
     //Returns Ok if it can do this or Err if there isn't enough room
     pub fn push(&mut self, data: T) -> Result<(), ()> {
-        if self.buffer_size() <= self.size() { return Err(()); }
+        if self.buffer_size() <= self.size() {
+            return Err(());
+        }
         self.buffer[self.size] = data;
         self.size += 1;
         Ok(())
@@ -54,15 +54,18 @@ impl <'a, T: 'a> StackVec<'a, T> {
     //Pops the top of the vector and returns a reference to that element wrapped
     //in Ok. If there are none to pop, this returns Err.
     pub fn pop(&mut self) -> Result<&mut T, ()> {
-        if self.size() == 0 { return Err(()); }
-        let data = &mut self.buffer[self.size-1];
+        if self.size() == 0 {
+            return Err(());
+        }
+        let data = &mut self.buffer[self.size - 1];
         self.size -= 1;
         Ok(data)
     }
 
     //Returns the top of the vector as an iterator
     pub fn iter(&'a self) -> StackVecIterator<'a, T> {
-        StackVecIterator { vector: &self, location: 0 }
+        StackVecIterator { vector: &self,
+                           location: 0 }
     }
 }
 
@@ -70,8 +73,11 @@ impl <'a, T: 'a> StackVec<'a, T> {
 //Simply returns an immutable reference to the item at index
 impl<'a, T: 'a> core::ops::Index<usize> for StackVec<'a, T> {
     type Output = T;
+
     fn index(&self, index: usize) -> &T {
-        if index >= self.size() { panic!("StackVec: index out of bounds"); }
+        if index >= self.size() {
+            panic!("StackVec: index out of bounds");
+        }
         &self.buffer[index]
     }
 }
@@ -80,7 +86,9 @@ impl<'a, T: 'a> core::ops::Index<usize> for StackVec<'a, T> {
 //Simply returns a mutable reference to the item at index
 impl<'a, T: 'a> core::ops::IndexMut<usize> for StackVec<'a, T> {
     fn index_mut(&mut self, index: usize) -> &mut T {
-        if index >= self.size() { panic!("StackVec: index out of bounds"); }
+        if index >= self.size() {
+            panic!("StackVec: index out of bounds");
+        }
         &mut self.buffer[index]
     }
 }
@@ -88,13 +96,13 @@ impl<'a, T: 'a> core::ops::IndexMut<usize> for StackVec<'a, T> {
 //Implementation of the Iterator trait for our StackVecIterator
 impl<'a, T: 'a> Iterator for StackVecIterator<'a, T> {
     type Item = &'a T;
+
     fn next(&mut self) -> Option<&'a T> {
         if self.location < self.vector.size() {
             let ret = &self.vector[self.location];
             self.location += 1;
             Some(&ret)
-        }
-        else {
+        } else {
             None
         }
     }
@@ -110,7 +118,7 @@ macro_rules! stackvec {
         {
             let mut temp_vec = StackVec::new($storage);
             // Push back all of the elements
-            $( 
+            $(
                 if !temp_vec.push($x).is_ok() {
                     panic!("Not enough storage for initial elements.");
                 }
@@ -155,7 +163,7 @@ fn main() {
             "set" => {
                 // Extract value from input
                 let (i, v) = scan_fmt!(&input, "set {} {}", usize, f64);
-                if i == None || v == None { 
+                if i == None || v == None {
                     println!("Invalid command. (expected: set index value)");
                     continue 'command;
                 }
@@ -183,7 +191,7 @@ fn main() {
             "push" => {
                 // Extract value from input
                 let value = scan_fmt!(&input, "push {}", f64);
-                if value == None { 
+                if value == None {
                     println!("Invalid command. (expected: push value)");
                     continue 'command;
                 }
