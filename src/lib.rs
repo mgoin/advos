@@ -221,9 +221,23 @@ fn test_stackvec() {
     assert_eq!(vec[0], 23);
     assert_eq!(vec[1], 12);
 
-    let t = vec.pop().unwrap();
+    let mut t = vec.pop().unwrap();
     assert_eq!(*t, 12);
     assert_eq!(vec.size(), 1);
+    t = vec.pop().unwrap();
+    assert_eq!(*t, 23);
+    assert_eq!(vec.size(), 0);
+
+    vec.push(1).unwrap();
+    vec.push(2).unwrap();
+    vec.push(3).unwrap();
+    assert_eq!(vec.size(), 3);
+
+    let mut i = vec.iter();
+    assert_eq!(i.next(), Some(&1));
+    assert_eq!(i.next(), Some(&2));
+    assert_eq!(i.next(), Some(&3));
+    assert_eq!(i.next(), None);
 }
 
 #[cfg(feature = "testing")]
