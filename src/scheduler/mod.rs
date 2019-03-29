@@ -8,6 +8,10 @@ pub mod pcb;
 // round-robin scheduler switches to another process
 const TIME_QUANTUM: usize = 10000;
 
+extern "C" {
+    static GLOBAL_CTX: *const u32;
+}
+
 pub struct Scheduler {
     current_index: usize,
     processes: heapvec::HeapVec<pcb::ProcessControlBlock>,
