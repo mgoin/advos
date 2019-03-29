@@ -52,7 +52,11 @@ impl Scheduler {
         }
         let new_index = i;
 
-        // Switch registers 
+        // Switch processes
+        // Saving current process state and loading new process state
+        self.processes[self.current_index].save_registers(mepc);
+        let new_program_counter = self.processes[new_index].load_registers();
+        self.processes[new_index].switch_counter += 1;
 
         // Gets the register context of the currently running process from
         // GLOBAL_CTX and stores it to the process at |self.current_index|
@@ -63,6 +67,7 @@ impl Scheduler {
         // |new_index|
         self.schedule_new_proc(new_index);
 
+        self.current_index = new_index;
         // Done??
     }
 
