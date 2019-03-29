@@ -5,7 +5,6 @@ extern "C" {
     static mut GLOBAL_CTX: [u32; 32];
 }
 
-// TODO: Probably need to add some more states here for better granularity
 #[derive(PartialEq)]
 pub enum ProcessState {
     None,     // Process doesn't exist/is descheduled
