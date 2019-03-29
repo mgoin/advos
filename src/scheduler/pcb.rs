@@ -90,23 +90,16 @@ impl ProcessControlBlock {
 
     // Loads the cpu registers so another process can run
     pub fn load_registers(&mut self, mepc: u32) {
-        for i in 0..NUM_CPU_REGISTERS {
-            unsafe {
-                self.registers = GLOBAL_CTX;
-            }
+        unsafe {
+          self.registers = GLOBAL_CTX;
         }
         self.program_counter = mepc;
     }
 
     // Saves the process registers onto the cpu so it can run
     pub fn set_global_ctx(&mut self) -> u32 {
-        for i in 0..NUM_CPU_REGISTERS {
-            unsafe {
-                GLOBAL_CTX = self.registers;
-            }
-        }
-
         unsafe {
+            GLOBAL_CTX = self.registers;
             asm!("csrw mepc, $0" : "=r"(&mut self.program_counter) ::: "volatile");
         }
         self.program_counter
