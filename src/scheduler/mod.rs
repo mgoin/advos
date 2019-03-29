@@ -17,6 +17,10 @@ pub extern "C" fn recover() {
     ecall(SyscallTable::EXIT, 0);
 }
 
+extern "C" {
+    static GLOBAL_CTX: *const u32;
+}
+
 pub struct Scheduler {
     current_index: usize,
     pid_counter: usize,
