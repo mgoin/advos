@@ -301,6 +301,10 @@ fn main() {
     console::uart::init().unwrap();
     println!("Done");
 
+    print!("Initializing system timer...");
+    trap::timer::init().unwrap();
+    println!("Done");
+
     print!("Initializing MemManager...");
     MemManager::init();
     println!("Done");
@@ -325,10 +329,6 @@ fn main() {
         println!("\nTests finished, press Ctrl+A then C to exit qemu...");
         loop {}
     }
-
-    print!("Initializing system timer...");
-    trap::timer::init().unwrap();
-    println!("Done");
 
     println!("Type into the console:");
     loop {
