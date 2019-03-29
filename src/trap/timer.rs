@@ -29,6 +29,12 @@ pub fn incr() -> Result<(), Error> {
     Ok(())
 }
 
+// Returns the current time
+pub fn get_current_time() -> u64 {
+    let (time_lo, time_hi) = read_mtime();
+    return ((time_hi as u64) << 32) + (time_lo as u64);
+}
+
 fn read_mtime() -> (u32, u32) {
     let time_lo_addr = MTIME_LO as *mut u32;
     let time_hi_addr = MTIME_HI as *mut u32;
