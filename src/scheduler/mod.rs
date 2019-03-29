@@ -1,6 +1,8 @@
 use crate::global_constants::*;
-use crate::utils::heapvec;
+use crate::utils::heapvec::HeapVec as HeapVec;
 use core::ptr::{read_volatile, write_volatile};
+use pcb::ProcessState as ProcessState;
+use pcb::ProcessControlBlock as ProcessControlBlock;
 
 pub mod pcb;
 
@@ -14,16 +16,16 @@ extern "C" {
 
 pub struct Scheduler {
     current_index: usize,
-    processes: heapvec::HeapVec<pcb::ProcessControlBlock>,
+    processes: HeapVec<ProcessControlBlock>,
 }
 
 impl Scheduler {
     // Creates a Scheduler with an init process
     pub fn new() -> Scheduler {
         let mut s = Scheduler { current_index: 0,
-                                processes: heapvec::HeapVec::new(32) };
+                                processes: HeapVec::new(32) };
         // Create the init process as the first process
-        s.processes.push(pcb::ProcessControlBlock::new(0, 0, None, 0)).unwrap();
+        s.processes.push(ProcessControlBlock::new(0, 0, None, 0)).unwrap();
         return s;
     }
 
@@ -35,7 +37,7 @@ impl Scheduler {
             if i == self.processes.size() - 1 {
                 i = 0;
             }
-            else if self.processes[i].state != pcb::ProcessState::Running {
+            else if self.processes[i].state != ProcessState::Running {
                 i += 1;
             }
             else {
@@ -54,7 +56,7 @@ impl Scheduler {
         for i in 0..pcb::NUM_CPU_REGISTERS {
             unsafe { p.registers[i] = read_volatile(GLOBAL_CTX.add(i)); }
         }
-        p.state = pcb::ProcessState::Running;
+        p.state = ProcessState::Running;
         p.program_counter = mepc;
         return 1;
     }
