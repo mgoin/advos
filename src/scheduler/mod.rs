@@ -23,14 +23,14 @@ impl Scheduler {
         let mut s = Scheduler { current_index: 0,
                                 processes: heapvec::HeapVec::new(32) };
         // Create the init process as the first process
-        s.processes.push(pcb::ProcessControlBlock::new(0, 0, None, 0));
+        s.processes.push(pcb::ProcessControlBlock::new(0, 0, None, 0)).unwrap();
         return s;
     }
 
     pub fn context_switch(self) {
         // Pick a process to switch to using the scheduling algorithm
         // Round Robin
-        let i = self.current_index + 1;
+        let mut i = self.current_index + 1;
         while i != self.current_index {
             if i == self.processes.size() - 1 {
                 i = 0;
@@ -49,10 +49,10 @@ impl Scheduler {
         // Done??
     }
 
-    pub fn save_pcb(self, process_id: usize, mepc: usize) -> usize {
-        let p = self.processes[process_id];
+    pub fn save_pcb(mut self, process_id: usize, mepc: usize) -> usize {
+        let p = &mut self.processes[process_id];
         for i in 0..pcb::NUM_CPU_REGISTERS {
-            p.registers[i] = read_volatile(GLOBAL_CTX + i);
+            unsafe { p.registers[i] = read_volatile(GLOBAL_CTX.add(i)); }
         }
         p.state = pcb::ProcessState::Running;
         p.program_counter = mepc;
