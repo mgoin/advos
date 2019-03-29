@@ -15,7 +15,7 @@ pub enum ProcessState {
     Exited,   // Process is done, scheduler must remove it
 }
 
-pub const MAX_PROCESS_ID: usize = 256;
+pub const MAX_PROCESS_ID: usize = 32;
 // Number of CPU registers
 pub const NUM_CPU_REGISTERS: usize = 32;
 
