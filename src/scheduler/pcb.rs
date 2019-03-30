@@ -17,18 +17,8 @@ pub const NUM_CPU_REGISTERS: usize = 32;
 pub struct ProcessControlBlock {
     // Current state of process i.e. running, waiting
     pub state: ProcessState,
-    // Allow/disallow access to system resources
-    pub privilege: usize,
     // Unique identification for each process
     pub pid: usize,
-    // pid for the parent process
-    pub parent_process: Option<usize>,
-    // Time this process was created
-    pub start_time: u64,
-    // Time spent executing this process
-    pub elapsed_time: u64,
-    // Number of times this process has been context switched to
-    pub switch_counter: usize,
     // PROCESS CONTEXT //
     // Program Counter
     pub program_counter: usize,
@@ -38,19 +28,11 @@ pub struct ProcessControlBlock {
 
 impl ProcessControlBlock {
     // Creates a new process
-    pub fn new(privileges: usize,
-               id: usize,
-               parent: Option<usize>,
-               program_counter: usize)
-               -> ProcessControlBlock {
+    pub fn new(id: usize) -> ProcessControlBlock {
         ProcessControlBlock { state: ProcessState::Running,
-                              privilege: privileges,
                               pid: id,
-                              parent_process: parent,
                               registers: [0; NUM_CPU_REGISTERS],
-                              start_time: 0, // TODO: actually write time
-                              elapsed_time: 0,
-                              switch_counter: 0,
-                              program_counter: program_counter }
+                              program_counter: 0}
     }
 }
+
