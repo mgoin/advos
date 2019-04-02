@@ -1,10 +1,10 @@
 use crate::console::Console;
-use crate::global_constants::*;
+use crate::global_constants::MAX_PROC_COUNT;
+use crate::{print, println};
 use crate::utils::heapvec::HeapVec as HeapVec;
 use core::fmt::Write;
 use core::ptr::{read_volatile, write_volatile};
-use pcb::ProcessState as ProcessState;
-use pcb::ProcessControlBlock as ProcessControlBlock;
+use pcb::{ProcessState as ProcessState, ProcessControlBlock as ProcessControlBlock};
 
 pub mod pcb;
 
@@ -20,34 +20,38 @@ extern "C" {
 pub struct Scheduler {
     current_index: usize,
     pid_counter: usize,
-    processes: HeapVec<ProcessControlBlock>,
+    processes: *mut HeapVec<ProcessControlBlock>,
 }
 
 impl Scheduler {
     // Creates a Scheduler with an init process
-    pub fn new() -> Scheduler {
+    pub fn new(p: *mut HeapVec<ProcessControlBlock>) -> Scheduler {
         Scheduler {
             current_index: 0,
             pid_counter: 0,
-            processes: HeapVec::new(16),
+            processes: p,
         }
     }
 
-    pub fn init(&mut self) {
-        let s = Scheduler::new();
-        self.processes.push(ProcessControlBlock::new(self.pid_counter));
-        self.load_proc();
-        self.pid_counter += 1;
+    pub fn init(processes: *mut HeapVec<ProcessControlBlock>) -> Scheduler {
+        let mut s = Scheduler::new(processes);
+        let p_list: &mut HeapVec<ProcessControlBlock>;
+        unsafe { p_list = s.processes.as_mut().unwrap(); }
+        p_list.push(ProcessControlBlock::new(self.pid_counter));
+        p_list[0].load_registers();
+        s.pid_counter += 1;
+        s
     }
 
     pub fn run(&mut self) {
         // Pick a process to switch to using the scheduling algorithm
         // Round Robin
-        crate::print!("running scheduler\n");
-        let mut i = (self.current_index + 1) % self.processes.size();
+        let p_list: &mut HeapVec<ProcessControlBlock>;
+        unsafe { p_list = self.processes.as_mut().unwrap(); }
+        let mut i = (self.current_index + 1) % p_list.size();
         while i != self.current_index {
-            if self.processes[i].state != ProcessState::Running {
-                i = (i + 1) % self.processes.size();
+            if p_list[i].state != ProcessState::Running {
+                i = (i + 1) % p_list.size();
             }
         }
         let new_index = i;
@@ -60,50 +64,13 @@ impl Scheduler {
 
         // Gets the register context of the currently running process from
         // GLOBAL_CTX and stores it to the process at |self.current_index|
-        self.load_proc();
+        p_list[self.current_index].load_registers();
 
         // Sets the new register context at GLOBAL_CTX to be the process at
         // |new_index| and then sets |self.current_index| to be equal to
         // |new_index|
-        self.schedule_new_proc(new_index);
+        p_list[new_index].save_registers();
 
         self.current_index = new_index;
-        // Done??
-    }
-
-    fn load_proc(&mut self) {
-        let mut offset: usize = 0;
-        unsafe {
-            for mut i in self.processes[self.current_index].registers.iter_mut() {
-                write_volatile(&mut i, &mut (*(GLOBAL_CTX as *mut u32).add(offset)));
-                offset += 1;
-            }
-
-            asm!("csrr $0, mepc" :: "r"(self.processes[self.current_index].program_counter) :: "volatile");
-        }
-    }
-
-    fn schedule_new_proc(&mut self, index: usize) {
-        unsafe {
-            let mut offset: usize = 0;
-            for i in self.processes[index].registers.iter_mut() {
-                write_volatile(&mut (*(GLOBAL_CTX as *mut u32).add(offset)), *i);
-                offset += 1;
-            }
-
-            asm!("csrw  mepc, $0" :: "r"(self.processes[index].program_counter) :: "volatile");
-        }
-
-        self.current_index = index;
-    }
-
-    pub fn save_pcb(mut self, process_id: usize, mepc: usize) -> usize {
-        let p = &mut self.processes[process_id];
-        for i in 0..pcb::NUM_CPU_REGISTERS {
-            unsafe { p.registers[i] = read_volatile(GLOBAL_CTX.add(i)); }
-        }
-        p.state = ProcessState::Running;
-        p.program_counter = mepc;
-        return 1;
     }
 }

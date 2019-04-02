@@ -26,9 +26,10 @@ use console::Console;
 use core::fmt::Write;
 
 use memman::MemManager;
-
-#[cfg(feature = "testing")]
+use scheduler::pcb::ProcessControlBlock;
+use scheduler::Scheduler;
 use utils::heapvec::HeapVec;
+
 #[cfg(feature = "testing")]
 use utils::stackvec::StackVec;
 
@@ -289,6 +290,9 @@ fn run_tests() {
     test_scheduler();
 }
 
+static mut PROC_LIST: *mut HeapVec<ProcessControlBlock> = core::ptr::null_mut();
+static mut GLOBAL_SCHED: *mut Scheduler = core::ptr::null_mut();
+
 #[no_mangle]
 fn main() {
     unsafe {
@@ -307,6 +311,14 @@ fn main() {
 
     print!("Initializing MemManager...");
     MemManager::init();
+    println!("Done");
+
+    print!("Initializing scheduler...");
+    unsafe {
+        PROC_LIST = &mut HeapVec::new(global_constants::MAX_PROC_COUNT)
+                    as *mut HeapVec<ProcessControlBlock>;
+        GLOBAL_SCHED = &mut Scheduler::init(PROC_LIST) as *mut Scheduler;
+    }
     println!("Done");
 
     #[cfg(feature = "testing")]

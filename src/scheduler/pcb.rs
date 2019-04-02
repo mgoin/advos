@@ -40,20 +40,21 @@ impl ProcessControlBlock {
                               program_counter: 0}
     }
 
-    // Saves the cpu registers so another process can run
-    pub fn save_registers(&mut self, mepc: usize) {
+    // Loads the cpu registers so another process can run
+    pub fn load_registers(&mut self) {
         for i in 0..NUM_CPU_REGISTERS {
             unsafe { self.registers[i] = read_volatile(GLOBAL_CTX.add(i)); }
         }
-        self.program_counter = mepc;
+        unsafe { asm!("csrr $0, mepc" :: "r"(self.program_counter) :: "volatile") };
     }
 
-    // Loads the process registers onto the cpu so it can run
-    pub fn load_registers(&mut self) -> usize {
+    // Saves the process registers onto the cpu so it can run
+    pub fn save_registers(&mut self) {
         for i in 0..NUM_CPU_REGISTERS {
             unsafe { write_volatile(GLOBAL_CTX.add(i), self.registers[i]); }
         }
-        return self.program_counter;
+
+        unsafe { asm!("csrw mepc, $0" : "=r"(self.program_counter) ::: "volatile"); }
     }
 }
 
