@@ -31,7 +31,7 @@ impl Scheduler {
         unsafe {
             p_list = s.processes.as_mut().unwrap();
         }
-        p_list.push(ProcessControlBlock::new(self.pid_counter));
+        p_list.push(ProcessControlBlock::new(s.pid_counter));
         p_list[0].load_registers();
         s.pid_counter += 1;
         s
