@@ -25,9 +25,10 @@ impl<T> HeapVec<T> {
 
     // Pushes data onto the top of the vector and increments size
     // Returns Ok if it can do this or Err if there isn't enough room
-    pub fn push(&mut self, data: T) -> Result<(), ()> {
+    pub fn push(&mut self, data: T) {
         if self.size >= self.capacity {
-            return Err(());
+            // TODO: Expand on demand
+            return;
         }
 
         unsafe {
@@ -35,7 +36,6 @@ impl<T> HeapVec<T> {
         }
 
         self.size += 1;
-        Ok(())
     }
 
     // Pops off the top of the vector and returns that element
