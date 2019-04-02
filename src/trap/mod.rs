@@ -1,5 +1,6 @@
 use crate::console::Console;
 use crate::global_constants::CORE_LOCAL_INTERRUPT_MAP;
+use crate::GLOBAL_SCHED;
 use crate::{print, println};
 use core::fmt::Write;
 use core::ptr::{read_volatile, write_volatile};
@@ -44,6 +45,11 @@ pub extern "C" fn handle_trap(mcause: u32, mepc: u32) -> u32 {
             // Explicitly return since this is a synchronous interrupt and needs
             // to return to the instruction that was interrupted without moving
             // forward.
+            let sched: &mut crate::scheduler::Scheduler;
+            unsafe {
+                sched = GLOBAL_SCHED.as_mut().unwrap();
+            }
+            sched.run();
             timer::incr().unwrap();
             return mepc;
         }
