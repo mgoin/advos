@@ -249,9 +249,9 @@ fn test_heapvec() {
     assert_eq!(vec.capacity(), 10);
     assert_eq!(vec.size(), 0);
 
-    vec.push(23).unwrap();
+    vec.push(23);
     assert_eq!(vec.size(), 1);
-    vec.push(12).unwrap();
+    vec.push(12);
     assert_eq!(vec.size(), 2);
 
     assert_eq!(vec[0], 23);
@@ -264,9 +264,9 @@ fn test_heapvec() {
     assert_eq!(t, 23);
     assert_eq!(vec.size(), 0);
 
-    vec.push(1).unwrap();
-    vec.push(2).unwrap();
-    vec.push(3).unwrap();
+    vec.push(1);
+    vec.push(2);
+    vec.push(3);
 
     let mut i = vec.iter();
 
