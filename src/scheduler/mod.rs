@@ -1,9 +1,4 @@
-use crate::console::Console;
-use crate::global_constants::MAX_PROC_COUNT;
 use crate::utils::heapvec::HeapVec;
-use crate::{print, println};
-use core::fmt::Write;
-use core::ptr::{read_volatile, write_volatile};
 use pcb::{ProcessControlBlock, ProcessState};
 
 pub mod pcb;

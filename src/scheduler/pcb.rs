@@ -1,7 +1,4 @@
-use crate::global_constants::*;
 use core::ptr::{read_volatile, write_volatile};
-
-use crate::trap::timer;
 
 extern "C" {
     static GLOBAL_CTX: *mut u32;
