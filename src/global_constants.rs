@@ -13,3 +13,9 @@ pub const BAUD_RATE: u64 = 115_200;
 
 // Address of the CLINT for software and timer interrupts
 pub const CORE_LOCAL_INTERRUPT_MAP: u64 = 0x0200_0000;
+
+// Max number of processes that can run at one time
+pub const MAX_PROC_COUNT: usize = 16;
+
+// Allocated size for one process
+pub const PROC_ALLOC_SIZE: usize = 1 << 8;
