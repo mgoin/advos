@@ -6,6 +6,7 @@ extern "C" {
     static GLOBAL_CTX: *mut u32;
 }
 
+// TODO: Probably need to add some more states here for better granularity
 #[derive(PartialEq)]
 pub enum ProcessState {
     None,     // Process doesn't exist/is descheduled
@@ -14,15 +15,29 @@ pub enum ProcessState {
     Exited,   // Process is done, scheduler must remove it
 }
 
-pub const MAX_PROCESS_ID: usize = 32;
-// Number of CPU registers
-pub const NUM_CPU_REGISTERS: usize = 32;
+// Allow us to do some formatted printing of the ProcessState in
+// Scheduler::Print()
+impl core::fmt::Display for ProcessState {
+    fn fmt(&self, f: &mut core::fmt::Formatter) -> core::fmt::Result {
+        let width = f.width().unwrap();
+        match self {
+            ProcessState::None => write!(f, "{:>w$}", "None", w=width),
+            ProcessState::Running => write!(f, "{:>w$}", "Running", w=width),
+            ProcessState::Sleeping => write!(f, "{:>w$}", "Sleeping", w=width),
+            ProcessState::Exited => write!(f, "{:>w$}", "Exited", w=width),
+        }
+    }
+}
+
+const STACK_POINTER_REGISTER_OFFSET: usize = 2;
 
 pub struct ProcessControlBlock {
     // Current state of process i.e. running, waiting
     pub state: ProcessState,
     // Unique identification for each process
     pub pid: usize,
+
+    pub start_time: u64,
     // PROCESS CONTEXT //
     // Program Counter
     program_counter: u32,
@@ -41,6 +56,7 @@ impl ProcessControlBlock {
     fn new(id: usize, pc: u32) -> ProcessControlBlock {
         ProcessControlBlock { state: ProcessState::Running,
                               pid: id,
+                              start_time: 0,
                               registers: [0; NUM_CPU_REGISTERS],
                               program_counter: pc,
                               stack_end: MemManager::kmalloc(PROC_ALLOC_SIZE).unwrap() as *const u32,
