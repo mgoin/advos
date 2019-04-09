@@ -2,7 +2,7 @@ use crate::global_constants::{CLOCK_FREQ, CORE_LOCAL_INTERRUPT_MAP};
 use core::fmt::Error;
 use core::ptr::{read_volatile, write_volatile};
 
-const CTX_PER_SECOND: u64 = 1;
+const CTX_PER_SECOND: u64 = 10000;
 const TIME_TO_CTX_SWITCH: u32 = (CLOCK_FREQ / CTX_PER_SECOND) as u32;
 
 const MTIME_CMP_LO: u64 = CORE_LOCAL_INTERRUPT_MAP + 0x4000;
