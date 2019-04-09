@@ -305,10 +305,6 @@ fn main() {
     console::uart::init().unwrap();
     println!("Done");
 
-    print!("Initializing system timer...");
-    trap::timer::init().unwrap();
-    println!("Done");
-
     print!("Initializing MemManager...");
     MemManager::init();
     println!("Done");
@@ -319,6 +315,10 @@ fn main() {
                     as *mut HeapVec<ProcessControlBlock>;
         GLOBAL_SCHED = &mut Scheduler::init(PROC_LIST) as *mut Scheduler;
     }
+    println!("Done");
+
+    print!("Initializing system timer...");
+    trap::timer::init().unwrap();
     println!("Done");
 
     #[cfg(feature = "testing")]
