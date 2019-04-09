@@ -87,13 +87,21 @@ fn panic(info: &core::panic::PanicInfo) -> ! {
     abort()
 }
 
-fn echo_from_console() -> () {
-    if let Some(s) = console::Console::read() {
-        print!("\r\nread \"");
-        for c in s.iter() {
-            print!("{}", c);
+fn print_to_console() -> i32 {
+    println!("Hello World");
+    0
+}
+
+fn echo_from_console() -> i32 {
+    println!("Type into the console:");
+    loop {
+        if let Some(s) = console::Console::read() {
+            print!("\r\nread \"");
+            for c in s.iter() {
+                print!("{}", c);
+            }
+            println!("\" from uart");
         }
-        println!("\" from uart");
     }
 }
 
@@ -342,8 +350,15 @@ fn main() {
         loop {}
     }
 
-    println!("Type into the console:");
+    let scheduler: &mut crate::scheduler::Scheduler;
+    unsafe {
+        scheduler = GLOBAL_SCHED.as_mut().unwrap();
+    }
+
+    let echo_pid = scheduler.create_proc(print_to_console).unwrap();
+
+    // Main loop doesn't return, simply wait for interrupt
     loop {
-        echo_from_console();
+        unsafe { asm!("wfi" :::: "volatile"); }
     }
 }
