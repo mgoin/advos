@@ -19,3 +19,6 @@ pub const MAX_PROC_COUNT: usize = 16;
 
 // Allocated size for one process
 pub const PROC_ALLOC_SIZE: usize = 1 << 8;
+
+// Number of CPU registers
+pub const NUM_CPU_REGISTERS: usize = 32;
