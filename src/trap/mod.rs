@@ -7,6 +7,8 @@ use core::ptr::{read_volatile, write_volatile};
 
 pub mod timer;
 
+static mut PRINT_TIMER: usize = 0;
+
 #[no_mangle]
 pub extern "C" fn handle_trap(mcause: u32, mepc: u32) -> u32 {
     let interrupt_flag: u32 = mcause >> 31;
@@ -49,8 +51,23 @@ pub extern "C" fn handle_trap(mcause: u32, mepc: u32) -> u32 {
             unsafe {
                 sched = GLOBAL_SCHED.as_mut().unwrap();
             }
-            sched.run();
+
+            // Only print the scheduler state once every 5000 timer interrupts
+            unsafe {
+                if PRINT_TIMER % 5000 == 0 {
+                    sched.print();
+                }
+            }
+
+            // Acquire the scheduler lock, and run the scheduler
+            if sched.lock.try_lock().unwrap() {
+                sched.run();
+            }
+            sched.lock.unlock();
+
+            // Incremeent the timer and the print timer
             timer::incr().unwrap();
+            unsafe { PRINT_TIMER = PRINT_TIMER.wrapping_add(1); }
             return mepc;
         }
         (1, 8) => {
