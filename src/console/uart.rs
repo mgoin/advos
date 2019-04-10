@@ -17,6 +17,7 @@ use crate::global_constants::{BAUD_RATE, CLOCK_FREQ, UART_ADDR};
 use core::fmt::Error;
 use core::ptr::{read_volatile, write_volatile};
 
+// Calculate baud rate divisor at compile-time
 const DIVISOR: u64 = (CLOCK_FREQ / BAUD_RATE) - 1;
 
 const TXDATA: u64 = UART_ADDR + 0x000; // Transmit data register
@@ -27,19 +28,24 @@ const IE: u64 = UART_ADDR + 0x010; // UART interrupt enable
 const IP: u64 = UART_ADDR + 0x014; // UART interrupt pending
 const DIV: u64 = UART_ADDR + 0x018; // Baud rate divisor
 
+// Initialize UART to support reading/writing to console
 pub fn init() -> Result<(), Error> {
     let div = DIV as *mut u32;
     let txctrl = TXCTRL as *mut u32;
     let rxctrl = RXCTRL as *mut u32;
     unsafe {
+        // Set the divisor for baud rate
         write_volatile(div, DIVISOR as u32 & 0x0000_FFFF);
+        // Enable transmission by setting transmit control register bit 0 to 1
         write_volatile(txctrl, read_volatile(txctrl) | 1);
+        // Enable recieve by setting recieve control register bit 0 to 1
         write_volatile(rxctrl, read_volatile(rxctrl) | 1);
     }
-
     Ok(())
 }
 
+// Read a single byte from UART, popping it off the FIFO
+// Returns the byte wrapped with Some if there is something, None otherwise
 pub fn readchar() -> Option<u8> {
     let rxdata = RXDATA as *mut u32;
     let r: u32;

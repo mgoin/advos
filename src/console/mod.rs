@@ -20,17 +20,14 @@ impl core::fmt::Write for Console {
     // The Write trait simply must use a write_str function.
     // For our implementation, we passed this off to a function
     // internal to the console
-
     fn write_str(&mut self, s: &str) -> Result<(), Error> {
         Console::write(s)
     }
 }
 
 impl Console {
-    // The write function simply takes a string and writes its
-    // characters individually via the writechar function of the
-    // UART
-
+    // The write function simply takes a string and writes its characters
+    // individually via the writechar function of the UART
     pub fn write(s: &str) -> Result<(), Error> {
         for c in s.chars() {
             uart::writechar(c as u8);
@@ -40,14 +37,12 @@ impl Console {
     }
 
     // Function to help with debugging printable ascii characters
-
     fn write_char(c: char) -> () {
         uart::writechar(c as u8);
     }
 
     // Function to help with debugging non-printable ascii characters with
     // char.escape_debug()
-
     fn write_unicode(u: core::char::EscapeDebug) -> () {
         for c in u {
             uart::writechar(c as u8);
@@ -56,22 +51,18 @@ impl Console {
 
     // The read function of the console allows one to read continually
     // until a new line is found
-
     pub fn read() -> Option<[char; BUFFER_LENGTH]> {
-        // fill the buffer with a temp value
-
+        // Fill the buffer with a temp value
         let mut buffer: [char; BUFFER_LENGTH] = ['\0'; BUFFER_LENGTH];
         let mut next_char_index = 0;
 
         // Read will buffer input until the user hits enter
-
         loop {
             // If we read a control character, we print the character.
             // If it was '\r', we return the buffer. If it was an arrow
             // key, we move the cursor and the position in the buffer.
             // Otherwise, it is an uncaptured control sequence. In this
             // case, we print a '\n' and return a None.
-
             if let Some(b) = uart::readchar() {
                 let c = b as char;
                 if c.is_control() {
@@ -87,17 +78,14 @@ impl Console {
                         // delete (\u{007f} or ascii 0x7f) character
                         '\u{8}' | '\u{7f}' => {
                             // This if keeps us from getting a negative index
-
                             if next_char_index != 0 {
                                 // Makes the new last character '\0'
-
                                 buffer[next_char_index - 1] = '\0';
                                 next_char_index -= 1;
 
                                 // Here we essentially rewrite the buffer to the
                                 // screen. First we clear the line with spaces.
                                 // Then we reprint the buffer.
-
                                 Console::write_char('\r');
                                 for i in 0..next_char_index + 1 {
                                     Console::write_char(' ');
@@ -110,8 +98,8 @@ impl Console {
                             }
                         }
 
-                        //  '\t' is considered a control character, simplly add
-                        //  it to the buffer and continue since it is printable.
+                        // '\t' is considered a control character, simply add
+                        // it to the buffer and continue since it is printable.
                         '\t' => {
                             Console::write_char('\t');
                             buffer[next_char_index] = '\t';

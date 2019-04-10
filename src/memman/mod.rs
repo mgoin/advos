@@ -13,10 +13,8 @@ pub struct Descriptor {
 pub struct MemManager;
 
 impl MemManager {
-    #[no_mangle]
-
     // Initialize by setting the first descriptor at the start of the heap
-
+    #[no_mangle]
     pub fn init() -> () {
         unsafe {
             let desc = HEAP_START as *mut Descriptor;
@@ -30,7 +28,6 @@ impl MemManager {
     // Ok has a u32 in it upon return corresponding to
     // the address of the memory
     // Error will return a string with the error message
-
     #[no_mangle]
     pub fn kmalloc(sz: usize) -> Result<u32, &'static str> {
         unsafe {
@@ -39,23 +36,18 @@ impl MemManager {
             let mut pnt = 0 as u32;
 
             // Get the size to a multiple of 4
-
             let size = (sz as u32) + 3 - (sz as u32 - 1) % 4 as u32;
 
             // Start at heap_start
             // Go until we reach the end or break
-
             while start != end {
                 // Make a descriptor at the start
-
                 let desc = start as *mut Descriptor;
 
                 // Check if we're taken
-
                 let t = read_volatile(&((*desc).taken)) as u16;
                 if t != 1 {
                     // Check if it's large enough
-
                     let s = read_volatile(&((*desc).len)) as u16;
                     if s as u32 >=
                        size + core::mem::size_of::<Descriptor>() as u32
@@ -63,12 +55,10 @@ impl MemManager {
                         let len = read_volatile(&mut ((*desc).len)) as u16;
 
                         // If it is big enough, mark as taken
-
                         write_volatile(&mut ((*desc).taken), 1 as u16);
 
                         // Split the block if the block was big enough that it
                         // would leave more than a Descriptor
-
                         let s2 =
                             size + core::mem::size_of::<Descriptor>() as u32;
                         if s2 != len as u32 &&
@@ -99,19 +89,16 @@ impl MemManager {
                         }
 
                         // Set the pointer that we'll return
-
                         pnt = start + core::mem::size_of::<Descriptor>() as u32;
                         break;
                     }
                 }
 
                 // If we didn't break, we set the location of the new Descriptor
-
                 start = start + read_volatile(&((*desc).len)) as u32;
             }
 
             // If the pointer isn't 0, we return it
-
             if pnt != 0 {
                 Ok(pnt)
             }
@@ -124,7 +111,6 @@ impl MemManager {
 
     // This function frees a given pointer
     // It returns an empty Ok or and Err string
-
     pub fn kfree(p: u32) -> Result<(), &'static str> {
         let mut badpnt = 0 as u16;
         unsafe {
@@ -132,12 +118,10 @@ impl MemManager {
                        as *mut Descriptor;
 
             // If the pointer isn't taken, it's a bad pointer
-
             if read_volatile(&((*desc).taken)) != 1 {
                 badpnt = 1;
             } else {
                 // Set the descriptor to not be taken
-
                 write_volatile(&mut ((*desc).taken), 0 as u16);
             }
         }
@@ -150,7 +134,6 @@ impl MemManager {
 
     // This function coalesces the memory, bringing together contiguous
     // elements that are not taken
-
     #[no_mangle]
     pub fn kcoalesce() -> () {
         unsafe {
@@ -160,23 +143,18 @@ impl MemManager {
 
             // Start at heap_start
             // Go until we reach the end or break
-
             while next != end {
                 // Make a descriptor at the start
-
                 let desc = start as *mut Descriptor;
 
                 // Find where the next descriptor will be
-
                 next = (start + read_volatile(&((*desc).len)) as u32) as u32;
 
                 // If we aren't at the end, try to merge
-
                 if next != end {
                     let desc2 = next as *mut Descriptor;
 
                     // Check if either are taken. If neither is taken, merge them
-
                     let t = read_volatile(&((*desc).taken)) as u16;
                     let t2 = read_volatile(&((*desc2).taken)) as u16;
 
