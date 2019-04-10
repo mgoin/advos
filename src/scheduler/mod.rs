@@ -12,6 +12,10 @@ pub mod pcb;
 // round-robin scheduler switches to another process
 const TIME_QUANTUM: u64 = 10000;
 
+pub extern "C" fn recover() {
+    //TODO add ecall here to call exit() system call
+}
+
 extern "C" {
     static GLOBAL_CTX: *const u32;
 }
@@ -90,7 +94,11 @@ impl Scheduler {
         for i in 0..p_list.size() {
             if p_list[i].state == ProcessState::Exited {
                 let mut p: &mut ProcessControlBlock = &mut p_list[i];
-                unsafe { core::ptr::write_volatile(&mut p, &mut ProcessControlBlock::init_new(self.pid_counter, func as u32)); }
+                unsafe {
+                    core::ptr::write_volatile(&mut p, &mut ProcessControlBlock::init_new(self.pid_counter,
+                                                                                         func as u32,
+                                                                                         recover as u32));
+                }
             }
             ind += 1 ;
         }
@@ -103,7 +111,7 @@ impl Scheduler {
         // If there weren't any spots taken by |ProcessState::Exited| processes,
         // push a new process onto the vector.
         if ind == p_list.size() {
-            p_list.push(ProcessControlBlock::init_new(self.pid_counter, func as u32));
+            p_list.push(ProcessControlBlock::init_new(self.pid_counter, func as u32, recover as u32));
         }
 
         let pid = self.pid_counter as u32;
@@ -136,6 +144,12 @@ impl Scheduler {
         if ind == p_list.size() {
             core::mem::drop(p_list.pop().unwrap());
         }
+    }
+
+    pub fn get_current_proc(&mut self) -> &mut ProcessControlBlock {
+        let p_list: &mut HeapVec<ProcessControlBlock>;
+        unsafe { p_list = self.processes.as_mut().unwrap(); }
+        &mut p_list[self.current_index]
     }
 
     // Print a nice table of PIDs with states

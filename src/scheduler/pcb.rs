@@ -29,6 +29,7 @@ impl core::fmt::Display for ProcessState {
     }
 }
 
+const RETURN_ADDRESS_REGISTER_OFFSET: usize = 1;
 const STACK_POINTER_REGISTER_OFFSET: usize = 2;
 
 pub struct ProcessControlBlock {
@@ -44,6 +45,9 @@ pub struct ProcessControlBlock {
     // CPU registers that process needs stored for execution in running state
     registers: [u32; NUM_CPU_REGISTERS],
 
+    start_fn: u32,
+    end_fn: u32,
+
     // We'll have to allocate a region of memory for the stack.
     // |stack_start| will point to the bottom of the region and |stack_end| will
     // point to the top, i.e. |stack_start| = |stack_end| + PROC_ALLOC_SIZE
@@ -53,23 +57,26 @@ pub struct ProcessControlBlock {
 
 impl ProcessControlBlock {
     // Creates a new process
-    fn new(id: usize, pc: u32) -> ProcessControlBlock {
+    fn new(id: usize, start_func: u32, end_func: u32) -> ProcessControlBlock {
         ProcessControlBlock { state: ProcessState::Running,
                               pid: id,
                               start_time: 0,
                               registers: [0; NUM_CPU_REGISTERS],
-                              program_counter: pc,
+                              program_counter: start_func,
+                              start_fn: start_func,
+                              end_fn: end_func,
                               stack_end: MemManager::kmalloc(PROC_ALLOC_SIZE).unwrap() as *const u32,
                               stack_start: core::ptr::null_mut(),
         }
     }
 
-    pub fn init_new(pid: usize, pc: u32) -> ProcessControlBlock {
-        let mut pcb = ProcessControlBlock::new(pid, pc);
+    pub fn init_new(pid: usize, start_func: u32, end_func: u32) -> ProcessControlBlock {
+        let mut pcb = ProcessControlBlock::new(pid, start_func, end_func);
         unsafe {
             // Set the stack pointer to be the bottom of the allocated stack
             // region
             pcb.stack_start = pcb.stack_end.add(PROC_ALLOC_SIZE) as *mut u32;
+            pcb.registers[RETURN_ADDRESS_REGISTER_OFFSET] = pcb.end_fn;
             pcb.registers[STACK_POINTER_REGISTER_OFFSET] = pcb.stack_start as u32;
         }
 
@@ -124,6 +131,8 @@ impl Default for ProcessControlBlock {
             start_time: 0,
             registers: [0; NUM_CPU_REGISTERS],
             program_counter: 0,
+            start_fn: 0,
+            end_fn: crate::scheduler::recover as u32,
             stack_end: core::ptr::null(),
             stack_start: core::ptr::null_mut(),
         }
