@@ -7,7 +7,7 @@ use core::ptr::{read_volatile, write_volatile};
 
 pub mod timer;
 
-static mut PRINT_TIMER: usize = 0;
+static mut PRINT_TIMER: usize = 1;
 
 #[no_mangle]
 pub extern "C" fn handle_trap(mcause: u32, mepc: u32) -> u32 {
