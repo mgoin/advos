@@ -21,15 +21,6 @@ pub struct Scheduler {
     current_index: usize,
     pid_counter: usize,
     processes: *mut HeapVec<ProcessControlBlock>,
-
-    // These allow us to delete processes in O(m) time where m is the number of
-    // dead/exited processes instead of in O(n) time where n is the number of
-    // total processes, up to |MAX_PROC_COUNT|. |dead_procs| holds the index of
-    // a dead process at each index, with usize::MAX as the sentinal value.
-    // |dead_index| holds the next index into |dead_procs| to store the next
-    // dead process.
-    dead_procs: [usize; MAX_PROC_COUNT],
-    dead_index: usize,
 }
 
 impl Scheduler {
@@ -38,8 +29,6 @@ impl Scheduler {
         Scheduler { current_index: 0,
                     pid_counter: 0,
                     lock: Mutex::new(),
-                    dead_procs: [core::usize::MAX; MAX_PROC_COUNT],
-                    dead_index: 0,
                     processes: p }
     }
 
@@ -94,42 +83,59 @@ impl Scheduler {
             p_list = self.processes.as_mut().unwrap();
         }
 
+        // We create a process by setting the memory address of the provided
+        // function as the program counter for the new pcb
+
+        let mut ind = 0usize;
+        for i in 0..p_list.size() {
+            if p_list[i].state == ProcessState::Exited {
+                let mut p: &mut ProcessControlBlock = &mut p_list[i];
+                unsafe { core::ptr::write_volatile(&mut p, &mut ProcessControlBlock::init_new(self.pid_counter, func as u32)); }
+            }
+            ind += 1 ;
+        }
+
         // We currently don't support expanding the process vector
         if p_list.size() > MAX_PROC_COUNT {
             return Err(())
         }
 
-        // We create a process by setting the memory address of the provided
-        // function as the program counter for the new pcb
-        let new_proc = ProcessControlBlock::init_new(self.pid_counter, func as u32);
+        // If there weren't any spots taken by |ProcessState::Exited| processes,
+        // push a new process onto the vector.
+        if ind == p_list.size() {
+            p_list.push(ProcessControlBlock::init_new(self.pid_counter, func as u32));
+        }
+
+        let pid = self.pid_counter as u32;
         self.pid_counter += 1;
 
-        // Add the new process to the list of processes
-        p_list.push(new_proc);
-
         // Return the pid
-        Ok(self.pid_counter as u32 - 1)
+        Ok(pid)
     }
 
     // Deallocate processes that have exited that are still in the process list
     // TODO: Actually deallocate these
-    pub fn delete_proc(&mut self) {
+    pub fn delete_proc(&mut self, pid: u32) {
         let p_list: &mut HeapVec<ProcessControlBlock>;
         unsafe {
             p_list = self.processes.as_mut().unwrap();
         }
 
-        for i in 0..self.dead_index {
-            if self.dead_procs[i] != core::usize::MAX {
-                p_list[self.dead_procs[i]].state = ProcessState::None;
-            }
-            else {
-                break;
-            }
-            self.dead_procs[i] = core::usize::MAX;
+        let ind: usize = if pid == 0 {
+            self.current_index
         }
+        else {
+            pid as usize
+        };
 
-        self.dead_index = 0;
+        p_list[ind].state = ProcessState::Exited;
+
+        // If the process is at the end of the process list, we can remove it in
+        // constant time, so we'll simply deallocate it here. Otherwise, we'll
+        // just mark it as exited and overwrite when a new process is created.
+        if ind == p_list.size() {
+            core::mem::drop(p_list.pop().unwrap());
+        }
     }
 
     // Print a nice table of PIDs with states
@@ -157,10 +163,6 @@ impl Scheduler {
 
         let mut i = (scheduler.current_index + 1) % p_list.size();
         while i != scheduler.current_index && p_list[i].state != ProcessState::Running {
-            if p_list[i].state == ProcessState::Exited {
-                scheduler.dead_procs[scheduler.dead_index] = i;
-                scheduler.dead_index += 1;
-            }
             i = (i + 1) % p_list.size();
         }
         let new_index = i;
