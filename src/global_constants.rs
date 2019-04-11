@@ -22,3 +22,6 @@ pub const PROC_ALLOC_SIZE: usize = 1 << 8;
 
 // Number of CPU registers
 pub const NUM_CPU_REGISTERS: usize = 32;
+
+// Magic number in superblock to check validity
+pub const SUPERBLOCK_MAGIC: u32 = 0xdead;
