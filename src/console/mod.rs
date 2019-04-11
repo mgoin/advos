@@ -24,14 +24,7 @@ impl core::fmt::Write for Console {
     // For our implementation, we passed this off to a function
     // internal to the console
     fn write_str(&mut self, s: &str) -> Result<(), Error> {
-        unsafe {
-            (*IO_LOCK).lock();
-        }
-        let r = Console::write(s);
-        unsafe {
-            (*IO_LOCK).unlock();
-        }
-        return r;
+        Console::write(s)
     }
 }
 
@@ -39,10 +32,15 @@ impl Console {
     // The write function simply takes a string and writes its characters
     // individually via the writechar function of the UART
     pub fn write(s: &str) -> Result<(), Error> {
+        unsafe {
+            (*IO_LOCK).lock();
+        }
         for c in s.chars() {
             uart::writechar(c as u8);
         }
-
+        unsafe {
+            (*IO_LOCK).unlock();
+        }
         Ok(())
     }
 
