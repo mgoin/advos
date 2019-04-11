@@ -14,12 +14,12 @@
 
 // Macro to save a register to memory
 .macro sv z, jacob=t6
-    sw  x\z, ((\z - 1)*4)(\jacob)
+    sw  x\z, ((\z)*4)(\jacob)
 .endm
 
 // Macro to load a register from memory
 .macro lv z, jacob=t6
-    lw  x\z, ((\z - 1)*4)(\jacob)
+    lw  x\z, ((\z)*4)(\jacob)
 .endm
 
 // This is called from Rust, so we know we're in machine mode
@@ -68,7 +68,7 @@ trap_handler:
   // |GLOBAL_CTX| is located in the bss section and will hold the register
   // context that was interrupted and be restored upon the completion of the
   // |handle_trap| function in rust
-  la   t6, GLOBAL_CTX 
+  la   t6, GLOBAL_CTX
 
   // start at 1 because we don't need to save 0 register
   .set i, 1
@@ -93,7 +93,7 @@ trap_handler:
   // The checks to determine if the next instruction is offset 2 or 4
   // due to compressed instructions is done in Rust, save it to the stack
   // temporarily to restore register context
-  sw  a0, -4(sp)
+  csrw mepc, a0
 
   // restore register context that was stored to |GLOBAL_CTX|
   la  t6, GLOBAL_CTX
@@ -107,8 +107,6 @@ trap_handler:
 
   // Bring back the returned mepc pointer with the correct offset
   lw t6, -4(sp)
-
-  csrw mepc,t6
 
   // restore t6, saving t5 temporarily on the stack
   sw t5, -4(sp)
