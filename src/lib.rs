@@ -299,7 +299,7 @@ fn run_tests() {
 }
 
 static mut PROC_LIST: *mut HeapVec<ProcessControlBlock> = core::ptr::null_mut();
-static mut GLOBAL_SCHED: *mut Scheduler = core::ptr::null_mut();
+static mut GLOBAL_SCHED: Scheduler = scheduler::Scheduler::new();
 
 #[no_mangle]
 fn main() {
@@ -321,7 +321,7 @@ fn main() {
     unsafe {
         PROC_LIST = &mut HeapVec::new(global_constants::MAX_PROC_COUNT)
                     as *mut HeapVec<ProcessControlBlock>;
-        GLOBAL_SCHED = &mut Scheduler::init(PROC_LIST) as *mut Scheduler;
+        GLOBAL_SCHED.init(PROC_LIST);
     }
     println!("Done");
 
@@ -350,12 +350,8 @@ fn main() {
         loop {}
     }
 
-    let scheduler: &mut crate::scheduler::Scheduler;
-    unsafe {
-        scheduler = GLOBAL_SCHED.as_mut().unwrap();
-    }
-
-    let echo_pid = scheduler.create_proc(print_to_console).unwrap();
+    println!("creating new process");
+    unsafe { let echo_pid = GLOBAL_SCHED.create_proc(print_to_console).unwrap(); }
 
     // Main loop doesn't return, simply wait for interrupt
     loop {

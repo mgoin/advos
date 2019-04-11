@@ -29,18 +29,17 @@ pub struct Scheduler {
 
 impl Scheduler {
     // Creates a Scheduler with an init process
-    fn new(p: *mut HeapVec<ProcessControlBlock>) -> Scheduler {
+    pub const fn new() -> Scheduler {
         Scheduler { current_index: 0,
                     pid_counter: 0,
-                    lock: Mutex::new(),
-                    processes: p }
+                    processes: core::ptr::null_mut(), }
     }
 
-    pub fn init(processes: *mut HeapVec<ProcessControlBlock>) -> Scheduler {
-        let mut s = Scheduler::new(processes);
+    pub fn init(&mut self, processes: *mut HeapVec<ProcessControlBlock>) {
+        self.processes = processes;
         let p_list: &mut HeapVec<ProcessControlBlock>;
         unsafe {
-            p_list = s.processes.as_mut().unwrap();
+            p_list = self.processes.as_mut().unwrap();
         }
 
         // Create the "default" process, which is pid 0 for our operating
@@ -49,15 +48,13 @@ impl Scheduler {
         // pointer is already in place from boot time and program counter is
         // already executing at a particular address that we won't mess with
         p_list.push(ProcessControlBlock::default());
-        p_list[0].set_pid(s.pid_counter);
-        p_list[0].load_registers();
-        s.pid_counter += 1;
-        s
+        p_list[0].set_pid(self.pid_counter);
+        self.pid_counter += 1;
     }
 
     // Check the amount of time the current process has been running, if greater
     // than |TIME_QUANTUM|, swap to a new process, otherwise return
-    pub fn run(&mut self) {
+    pub fn run(&mut self, mepc: u32) -> u32 {
         // Pick a process to switch to using the scheduling algorithm
         // Round Robin
         let p_list: &mut HeapVec<ProcessControlBlock>;
@@ -72,10 +69,10 @@ impl Scheduler {
         // clock ticks, if the currently running process hasn't had enough time,
         // just return without doing anything
         if current_time - p_list[self.current_index].start_time > TIME_QUANTUM {
-            Scheduler::do_scheduler(self);
+            Scheduler::do_scheduler(self, mepc)
         }
         else {
-            return;
+            mepc
         }
     }
 
@@ -154,14 +151,13 @@ impl Scheduler {
 
     // Print a nice table of PIDs with states
     // TODO: Add other things to print, like names, total running time, priority, etc.
-    pub fn print(&self) {
+    pub fn print(&mut self) {
         let p_list: &mut HeapVec<ProcessControlBlock>;
         unsafe {
             p_list = self.processes.as_mut().unwrap();
         }
 
         println!("current pid: {}", self.current_index);
-
         println!("{PID:>width$} {STATE:>width$}", PID="PID", STATE="STATE", width=15);
         for p in p_list.iter() {
             println!("{pid:>width$} {state:>width$}", pid=p.pid, state=p.state, width=15);
@@ -169,7 +165,7 @@ impl Scheduler {
     }
 
     // Actually perform the round robin schedule to swap in a new process.
-    fn do_scheduler(scheduler: &mut Scheduler) {
+    fn do_scheduler(scheduler: &mut Scheduler, mepc: u32) -> u32 {
         let p_list: &mut HeapVec<ProcessControlBlock>;
         unsafe {
             p_list = scheduler.processes.as_mut().unwrap();
@@ -183,14 +179,15 @@ impl Scheduler {
 
         // Gets the register context of the currently running process from
         // GLOBAL_CTX and stores it to the process at |scheduler.current_index|
-        p_list[scheduler.current_index].load_registers();
+        p_list[scheduler.current_index].load_registers(mepc);
 
         // Sets the new register context at GLOBAL_CTX to be the process at
         // |new_index| and then sets |scheduler.current_index| to be equal to
         // |new_index|
-        p_list[new_index].set_global_ctx();
+        let new_pc = p_list[new_index].set_global_ctx();
         p_list[new_index].start_time = crate::trap::timer::get_current_time();
 
         scheduler.current_index = new_index;
+        new_pc
     }
 }
