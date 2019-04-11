@@ -6,6 +6,7 @@
 // trait is also implemented for the Console to allow it use fmt to handle the
 // formatting for the print! and println! macros.
 
+use crate::lock::Mutex;
 use core::fmt::Error;
 
 pub mod uart;
@@ -14,14 +15,23 @@ pub struct Console;
 
 const BUFFER_LENGTH: usize = 256;
 
-// This implements the Write trait for the console
+// Mutex for reading and writing to the Console
+pub static mut IO_LOCK: *mut Mutex = core::ptr::null_mut();
 
+// This implements the Write trait for the console
 impl core::fmt::Write for Console {
     // The Write trait simply must use a write_str function.
     // For our implementation, we passed this off to a function
     // internal to the console
     fn write_str(&mut self, s: &str) -> Result<(), Error> {
-        Console::write(s)
+        unsafe {
+            (*IO_LOCK).lock();
+        }
+        let r = Console::write(s);
+        unsafe {
+            (*IO_LOCK).unlock();
+        }
+        return r;
     }
 }
 
@@ -52,6 +62,10 @@ impl Console {
     // The read function of the console allows one to read continually
     // until a new line is found
     pub fn read() -> Option<[char; BUFFER_LENGTH]> {
+        unsafe {
+            (*IO_LOCK).lock();
+        }
+
         // Fill the buffer with a temp value
         let mut buffer: [char; BUFFER_LENGTH] = ['\0'; BUFFER_LENGTH];
         let mut next_char_index = 0;
@@ -71,6 +85,9 @@ impl Console {
                         // pressed, which is the trigger to return the buffer
                         // to the caller.
                         '\r' => {
+                            unsafe {
+                                (*IO_LOCK).unlock();
+                            }
                             return Some(buffer);
                         }
 
@@ -109,6 +126,9 @@ impl Console {
                         // Unhandled control charaters
                         _ => {
                             Console::write_char('\n');
+                            unsafe {
+                                (*IO_LOCK).unlock();
+                            }
                             return None;
                         }
                     }

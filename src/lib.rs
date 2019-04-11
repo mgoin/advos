@@ -331,6 +331,9 @@ fn main() {
     // Intialize UART for reading/writing
     print!("Initializing UART...");
     console::uart::init().unwrap();
+    unsafe {
+        console::IO_LOCK = &mut lock::Mutex::new();
+    }
     println!("Done");
 
     print!("Initializing MemManager...");
