@@ -24,4 +24,7 @@ pub const PROC_ALLOC_SIZE: usize = 1 << 8;
 pub const NUM_CPU_REGISTERS: usize = 32;
 
 // Magic number in superblock to check validity
-pub const SUPERBLOCK_MAGIC: u32 = 0xdead;
+pub const SUPERBLOCK_MAGIC: u32 = 0xef53;
+
+// Size of blocks for our filesystem
+pub const DEVICE_BLOCK_SIZE: u32 = 512;

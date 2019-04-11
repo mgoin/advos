@@ -13,73 +13,123 @@ How To Read the Root Directory
 The root directory's inode is defined to always be 2. Read/parse the contents of inode 2.
 */
 
-use crate::global_constants::SUPERBLOCK_MAGIC;
+use crate::global_constants::{SUPERBLOCK_MAGIC, BLOCK_SIZE};
+
+use core::mem::size_of;
+
+pub struct Device {
+    device: mut *u32,
+    superblock: SuperBlock,
+    group_descriptor_table: GroupDescriptor,
+}
 
 pub struct SuperBlock {
     // Number of inodes
-    inodes_count: usize,
+    s_inodes_count: u32,
     // Number of blocks
-    blocks_count: usize,
+    s_blocks_count: u32,
     // Number of reserved blocks
-    reserved_blocks_count: usize,
+    s_r_blocks_count: u32,
     // Number of free blocks
-    free_blocks_count: usize,
+    s_free_blocks_count: u32,
     // Number of free inodes
-    free_inodes_count: usize,
+    s_free_inodes_count: u32,
     // First data block
-    first_data_block: usize,
-    // Number of blocks per group
-    blocks_per_group: usize,
-    // Number of fragments per group
-    frags_per_group: usize,
-    // Number of inodes per group
-    inodes_per_group: usize,
-    // Magic signature
-    magic: u32,
-    // Location of first inode
-    first_inode: usize,
+    s_first_data_block: u32,
     // Block size
-    block_size: usize,
+    s_log_block_size: u32,
     // Fragment size
-    fragment_size: usize,
-    // Inode size
-    inode_size: usize,
+    s_log_fragment_size: u32,
+    // Number of blocks per group
+    s_blocks_per_group: u32,
+    // Number of fragments per group
+    s_frags_per_group: u32,
+    // Number of inodes per group
+    s_inodes_per_group: u32,
+    // Mount time
+    s_mtime: u32,
+    // Write time
+    s_wtime: u32,
+    // Mount count
+    s_mnt_count: u16,
+    // Maximal mount count
+    s_max_mnt_count: u16,
+    // Magic signature
+    s_magic: u32,
 }
 
-pub struct Group {
-    // Block bitmap block
-    block_bitmap: usize,
-    // Inode bitmap block
-    inode_bitmap: usize,
-    // Inode table block
-    inode_table: usize,
-    // Free block count
-    free_blocks_count: usize,
-    // Free inode count
-    free_inodes_count: usize,
+pub struct GroupDescriptor {
+    // Block id for first block of block bitmap
+    bg_block_bitmap: u32,
+    // Block id for first block of inode bitmap
+    bg_inode_bitmap: u32,
+    // Block id for first block of inode table
+    bg_inode_table: u32,
+    // Total number of free blocks
+    bg_free_blocks_count: u16,
+    // Total number of free inodes
+    bg_free_inodes_count: u16,
+    // Number of inodes allocated to directories
+    bg_used_dirs_count: u16,
 }
 
 pub struct Inode {
-    // Size in bytes
-    size: usize,
-    // Group id
-    group_id: usize,
-    // Link count
-    links_count: usize,
-    // Block count
-    blocks_count: usize,
-    // Pointers to the blocks that contain the data the 
-    // inode is describing. The first 12 are pointers to the physical blocks
-    // and the last 3 pointers contain more and more levels of indirection
-    data_blocks: [u32: 15],
+    // Indicates format of file and access rights
+    i_mode: u16,
+    // User id associated with file
+    i_uid: u16,
+    // Size of the file bytes
+    i_size: u32,
+    // Number of seconds since Jan 1st 1970 of the last time this was accessed
+    i_atime: u32,
+    // Number of seconds since Jan 1st 1970 of when this was created
+    i_ctime: u32,
+    // Number of seconds since Jan 1st 1970 of the last time this inode was modified
+    i_mtime: u32,
+    // Number of seconds since Jan 1st 1970 of when this inode was deleted
+    i_dtime: u32,
+    // POSIX group which has access to this file
+    i_gid: u16,
+    // How many times this inode is linked (referred to)
+    i_links_count: u16,
+    // Total number of blocks reserved to contain the data of this inode
+    i_blocks: u32,
+    // Indicates how ext2 implementation should behave for this inode's data
+    i_flags: u32,
+    // OS dependent value
+    i_osd1: u32,
+    // Block numbers containing the data for this inode
+    // The first 12 blocks are direct blocks, 
+    i_block: [u32: 15],
+    i_generation: u32,
+    i_file_acl: u32,
+    i_dir_acl: u32,
+    i_faddr: u32,
 }
 
-pub fn read_superblock(sb: &mut SuperBlock) -> Result<(), Error> {
-    // Skip over boot table???
-    // Read in the superblock
-    // Check magic signature
-    if sb.magic != SUPERBLOCK_MAGIC {
-        return Error();
+impl Device {
+    pub fn read_superblock(&mut self) -> Result<(), Error> {
+        // Skip over boot table???
+        // Read in the superblock
+        //read(&self.superblock, size_of::<SuperBlock>(), 1, file_descriptor);
+        // Check magic signature
+        if self.superblock.magic != SUPERBLOCK_MAGIC {
+            return Error();
+        }
+        return Ok();
     }
-    return Ok();
+
+    pub fn read_group_descriptor_table(&mut self) -> Result<(), Error> {
+        let gd_count = self.superblock.s_blocks_count / self.superblock.s_blocks_per_group + 1;
+
+        let position = (self.superblock.s_first_data_block + 1) * BLOCK_SIZE;
+
+    }
+
+    pub fn read_inode(&mut self, inode_number: u32) {
+        let group_number: u32 = (inode_number - 1) / self.superblock.s_inodes_per_group;
+        let inode_local_number: u32 = (inode_num - 1) % self.superblock.s_inodes_per_group;
+        let inode_table_block: u32 = self.group_descriptor_table.bg_inode_table;
+
+    }
 }
