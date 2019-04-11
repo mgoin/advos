@@ -29,5 +29,5 @@ pub const SUPERBLOCK_MAGIC: u32 = 0xef53;
 // Size of a block descriptor for ext2
 pub const BG_DESC_SIZE: usize = 32;
 
-//Size of an inode for ext2
+// Size of an inode for ext2
 pub const INODE_SIZE: usize = 128;

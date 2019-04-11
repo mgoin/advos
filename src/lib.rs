@@ -15,6 +15,7 @@
 #![allow(dead_code, unused_variables)]
 
 mod console;
+mod filesystem;
 mod global_constants;
 mod lock;
 mod memman;
@@ -22,7 +23,6 @@ mod scheduler;
 mod sys;
 mod trap;
 mod utils;
-mod filesystem;
 
 use console::Console;
 use core::fmt::Write;
