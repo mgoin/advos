@@ -328,9 +328,10 @@ fn main() {
     }
     println!("Interrupts enabled");
 
-    // Intialize UART for reading/writing
     print!("Initializing UART...");
+    // Intialize UART for reading/writing
     console::uart::init().unwrap();
+    // Initialize io lock for Console
     unsafe {
         console::IO_LOCK = &mut lock::Mutex::new();
     }
