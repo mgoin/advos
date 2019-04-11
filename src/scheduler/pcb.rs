@@ -1,9 +1,8 @@
 use crate::global_constants::{NUM_CPU_REGISTERS, PROC_ALLOC_SIZE};
 use crate::memman::MemManager;
-use core::ptr::{read_volatile, write_volatile};
 
 extern "C" {
-    static GLOBAL_CTX: *mut u32;
+    static mut GLOBAL_CTX: [u32;32];
 }
 
 // TODO: Probably need to add some more states here for better granularity
@@ -84,28 +83,27 @@ impl ProcessControlBlock {
     }
 
     // Loads the cpu registers so another process can run
-    pub fn load_registers(&mut self) {
+    pub fn load_registers(&mut self, mepc: u32) {
         for i in 0..NUM_CPU_REGISTERS {
             unsafe {
-                self.registers[i] = read_volatile(GLOBAL_CTX.add(i));
+                self.registers = GLOBAL_CTX;
             }
         }
-        unsafe {
-            asm!("csrr $0, mepc" :: "r"(self.program_counter) :: "volatile")
-        };
+        self.program_counter = mepc;
     }
 
     // Saves the process registers onto the cpu so it can run
-    pub fn set_global_ctx(&mut self) {
+    pub fn set_global_ctx(&mut self) -> u32 {
         for i in 0..NUM_CPU_REGISTERS {
             unsafe {
-                write_volatile(GLOBAL_CTX.add(i), self.registers[i]);
+                GLOBAL_CTX = self.registers;
             }
         }
 
         unsafe {
-            asm!("csrw mepc, $0" : "=r"(self.program_counter) ::: "volatile");
+            asm!("csrw mepc, $0" : "=r"(&mut self.program_counter) ::: "volatile");
         }
+        self.program_counter
     }
 
     pub fn set_pid(&mut self, pid: usize) {
