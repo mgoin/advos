@@ -1,7 +1,6 @@
 use core::fmt::Write;
 use crate::console::Console;
 use crate::global_constants::MAX_PROC_COUNT;
-use crate::lock::Mutex;
 use crate::{print, println};
 use crate::utils::heapvec::HeapVec;
 use pcb::{ProcessControlBlock, ProcessState};
@@ -13,15 +12,11 @@ pub mod pcb;
 const TIME_QUANTUM: u64 = 10000;
 
 pub extern "C" fn recover() {
+    println!("in recover");
     //TODO add ecall here to call exit() system call
 }
 
-extern "C" {
-    static GLOBAL_CTX: *const u32;
-}
-
 pub struct Scheduler {
-    pub lock: Mutex,
     current_index: usize,
     pid_counter: usize,
     processes: *mut HeapVec<ProcessControlBlock>,
@@ -87,19 +82,6 @@ impl Scheduler {
         // We create a process by setting the memory address of the provided
         // function as the program counter for the new pcb
 
-        let mut ind = 0usize;
-        for i in 0..p_list.size() {
-            if p_list[i].state == ProcessState::Exited {
-                let mut p: &mut ProcessControlBlock = &mut p_list[i];
-                unsafe {
-                    core::ptr::write_volatile(&mut p, &mut ProcessControlBlock::init_new(self.pid_counter,
-                                                                                         func as u32,
-                                                                                         recover as u32));
-                }
-            }
-            ind += 1 ;
-        }
-
         // We currently don't support expanding the process vector
         if p_list.size() > MAX_PROC_COUNT {
             return Err(())
@@ -107,9 +89,7 @@ impl Scheduler {
 
         // If there weren't any spots taken by |ProcessState::Exited| processes,
         // push a new process onto the vector.
-        if ind == p_list.size() {
-            p_list.push(ProcessControlBlock::init_new(self.pid_counter, func as u32, recover as u32));
-        }
+        p_list.push(ProcessControlBlock::init_new(self.pid_counter, func as u32, recover as u32));
 
         let pid = self.pid_counter as u32;
         self.pid_counter += 1;
