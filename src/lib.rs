@@ -22,6 +22,7 @@ mod scheduler;
 mod sys;
 mod trap;
 mod utils;
+mod filesystem;
 
 use console::Console;
 use core::fmt::Write;
@@ -292,6 +293,21 @@ fn test_heapvec() {
 fn test_scheduler() {}
 
 #[cfg(feature = "testing")]
+fn test_filesystem() {
+    println!("### Testing Filesystem ###");
+    println!("Printing Superblock Information");
+    let mut dev = filesystem::Device::new();
+    match dev.read_superblock() {
+        Ok(()) => println!("Successfully read Superblock"),
+        Err(()) => println!("ERROR: Cannot read Superblock"),
+    }
+
+    dev.superblock.print();
+
+    dev.read_inode(12);
+}
+
+#[cfg(feature = "testing")]
 fn run_tests() {
     test_println();
     test_mutex();
@@ -299,6 +315,7 @@ fn run_tests() {
     test_stackvec();
     test_heapvec();
     test_scheduler();
+    test_filesystem();
 }
 
 static mut PROC_LIST: *mut HeapVec<ProcessControlBlock> = core::ptr::null_mut();
