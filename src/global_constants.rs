@@ -26,5 +26,8 @@ pub const NUM_CPU_REGISTERS: usize = 32;
 // Magic number in superblock to check validity
 pub const SUPERBLOCK_MAGIC: u32 = 0xef53;
 
-// Size of blocks for our filesystem
-pub const DEVICE_BLOCK_SIZE: u32 = 512;
+// Size of a block descriptor for ext2
+pub const BG_DESC_SIZE: usize = 32;
+
+//Size of an inode for ext2
+pub const INODE_SIZE: usize = 128;
