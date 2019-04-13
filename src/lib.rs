@@ -19,6 +19,7 @@ mod global_constants;
 mod lock;
 mod memman;
 mod scheduler;
+mod sys;
 mod trap;
 mod utils;
 
