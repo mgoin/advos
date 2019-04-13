@@ -63,7 +63,7 @@ enable_interrupts:
 trap_handler:
   // t6 will be the temporary register used to hold the stack pointer as the
   // registers are all saved, so temporarily save it on the stack
-  sw   t6, -4(sp)
+  csrw mscratch, t6
 
   // |GLOBAL_CTX| is located in the bss section and will hold the register
   // context that was interrupted and be restored upon the completion of the
@@ -78,7 +78,7 @@ trap_handler:
   .endr
 
   // restore and save t6 to |GLOBAL_CTX|
-  lw  t6, -4(sp)
+  csrr t6, mscratch
   la  t5, GLOBAL_CTX
   sv  31, t5
 
@@ -104,14 +104,5 @@ trap_handler:
     lv %i
     .set i, i+1
   .endr
-
-  // Bring back the returned mepc pointer with the correct offset
-  lw t6, -4(sp)
-
-  // restore t6, saving t5 temporarily on the stack
-  sw t5, -4(sp)
-  la t5, GLOBAL_CTX
-  lv 31, t5
-  lw t5, -4(sp)
 
   mret
