@@ -51,12 +51,14 @@ pub extern "C" fn handle_trap(mcause: u32, mut mepc: u32) -> u32 {
             // Only print the scheduler state once every 5000 timer interrupts
             unsafe {
                 if PRINT_TIMER % 5000 == 0 {
-                    GLOBAL_SCHED.print();
+                    (*GLOBAL_SCHED).print();
                 }
             }
 
             // Acquire the scheduler lock, and run the scheduler
-            unsafe { mepc = GLOBAL_SCHED.run(mepc); }
+            unsafe {
+                mepc = (*GLOBAL_SCHED).run(mepc);
+            }
 
             // Increment the timer and the print timer
             timer::incr().unwrap();

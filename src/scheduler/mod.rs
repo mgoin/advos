@@ -24,17 +24,17 @@ pub struct Scheduler {
 
 impl Scheduler {
     // Creates a Scheduler with an init process
-    pub const fn new() -> Scheduler {
+    pub fn new() -> Scheduler {
         Scheduler { current_index: 0,
                     pid_counter: 0,
                     processes: core::ptr::null_mut(), }
     }
 
-    pub fn init(&mut self, processes: *mut HeapVec<ProcessControlBlock>) {
-        self.processes = processes;
-        let p_list: &mut HeapVec<ProcessControlBlock>;
+    pub fn init(processes: *mut HeapVec<ProcessControlBlock>)
+                -> *mut Scheduler {
+        let s: *mut Scheduler = crate::memman::MemManager::kmalloc(core::mem::size_of::<Scheduler>()).unwrap() as *mut Scheduler;
         unsafe {
-            p_list = self.processes.as_mut().unwrap();
+            core::ptr::write_volatile(s, Scheduler::new());
         }
 
         // Create the "default" process, which is pid 0 for our operating
@@ -42,9 +42,13 @@ impl Scheduler {
         // thus the only process that is not dynamically allocated, the stack
         // pointer is already in place from boot time and program counter is
         // already executing at a particular address that we won't mess with
-        p_list.push(ProcessControlBlock::default());
-        p_list[0].set_pid(self.pid_counter);
-        self.pid_counter += 1;
+        unsafe {
+            (*processes).push(ProcessControlBlock::default());
+            (*processes)[0].set_pid((*s).pid_counter);
+            (*s).pid_counter += 1;
+            (*s).processes = processes;
+        };
+        s
     }
 
     // Check the amount of time the current process has been running, if greater

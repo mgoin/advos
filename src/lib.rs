@@ -301,7 +301,7 @@ fn run_tests() {
 }
 
 static mut PROC_LIST: *mut HeapVec<ProcessControlBlock> = core::ptr::null_mut();
-static mut GLOBAL_SCHED: Scheduler = scheduler::Scheduler::new();
+static mut GLOBAL_SCHED: *mut Scheduler = core::ptr::null_mut();
 
 #[no_mangle]
 fn main() {
@@ -321,9 +321,9 @@ fn main() {
 
     print!("Initializing scheduler...");
     unsafe {
-        PROC_LIST = &mut HeapVec::new(global_constants::MAX_PROC_COUNT)
-                    as *mut HeapVec<ProcessControlBlock>;
-        GLOBAL_SCHED.init(PROC_LIST);
+        PROC_LIST = MemManager::kmalloc(core::mem::size_of::<HeapVec<ProcessControlBlock>>()).unwrap() as *mut HeapVec<ProcessControlBlock>;
+        core::ptr::write_volatile(PROC_LIST, HeapVec::new(crate::global_constants::MAX_PROC_COUNT));
+        GLOBAL_SCHED = Scheduler::init(PROC_LIST);
     }
     println!("Done");
 
@@ -353,7 +353,9 @@ fn main() {
     }
 
     println!("creating new process");
-    unsafe { let echo_pid = GLOBAL_SCHED.create_proc(print_to_console).unwrap(); }
+    unsafe {
+        let echo_pid = (*GLOBAL_SCHED).create_proc(print_to_console).unwrap();
+    }
 
     // Main loop doesn't return, simply wait for interrupt
     loop {
