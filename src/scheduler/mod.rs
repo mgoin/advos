@@ -1,5 +1,7 @@
 use crate::console::Console;
 use crate::global_constants::MAX_PROC_COUNT;
+use crate::sys::ecall::ecall;
+use crate::sys::table::SyscallTable;
 use crate::utils::heapvec::HeapVec;
 use crate::{print, println};
 use core::fmt::Write;
@@ -12,8 +14,7 @@ pub mod pcb;
 const TIME_QUANTUM: u64 = 10000;
 
 pub extern "C" fn recover() {
-    println!("in recover");
-    //TODO add ecall here to call exit() system call
+    ecall(SyscallTable::EXIT, 0);
 }
 
 pub struct Scheduler {
