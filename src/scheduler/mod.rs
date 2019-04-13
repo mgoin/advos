@@ -56,11 +56,6 @@ impl Scheduler {
     pub fn run(&mut self, mepc: u32) -> u32 {
         // Pick a process to switch to using the scheduling algorithm
         // Round Robin
-        let p_list: &mut HeapVec<ProcessControlBlock>;
-        unsafe {
-            p_list = self.processes.as_mut().unwrap();
-        }
-
         let current_time = crate::trap::timer::get_current_time();
 
         // Check the running time of the current process against |TIME_QUANTUM|
