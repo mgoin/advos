@@ -84,6 +84,8 @@ fn panic(info: &core::panic::PanicInfo) -> ! {
                  loc.line(),
                  loc.column());
     }
+
+    println!("PANIC : {}", info.message().unwrap());
     abort()
 }
 
