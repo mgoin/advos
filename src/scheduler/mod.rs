@@ -78,25 +78,26 @@ impl Scheduler {
     // Create a new process and add it to the process list where it will be run
     // periodically from the round robin scheduler
     pub fn create_proc(&mut self, func: fn() -> i32) -> Result<u32, ()> {
-        let p_list: &mut HeapVec<ProcessControlBlock>;
-        unsafe {
-            p_list = self.processes.as_mut().unwrap();
-        }
-
         // We create a process by setting the memory address of the provided
         // function as the program counter for the new pcb
 
-        // We currently don't support expanding the process vector
-        if p_list.size() > MAX_PROC_COUNT {
-            return Err(())
+        let pid: u32;
+        unsafe {
+            let p_list = self.processes.as_mut().unwrap();
+            // We currently don't support expanding the process vector
+            if p_list.size() > MAX_PROC_COUNT {
+                return Err(());
+            }
+
+            // If there weren't any spots taken by |ProcessState::Exited| processes,
+            // push a new process onto the vector.
+            p_list.push(ProcessControlBlock::init_new(self.pid_counter,
+                                                         func as u32,
+                                                         recover as u32));
+
+            pid = self.pid_counter as u32;
+            self.pid_counter += 1;
         }
-
-        // If there weren't any spots taken by |ProcessState::Exited| processes,
-        // push a new process onto the vector.
-        p_list.push(ProcessControlBlock::init_new(self.pid_counter, func as u32, recover as u32));
-
-        let pid = self.pid_counter as u32;
-        self.pid_counter += 1;
 
         // Return the pid
         Ok(pid)
