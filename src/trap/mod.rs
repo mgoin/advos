@@ -1,5 +1,6 @@
 use crate::console::Console;
 use crate::global_constants::CORE_LOCAL_INTERRUPT_MAP;
+use crate::sys;
 use crate::GLOBAL_SCHED;
 use crate::{print, println};
 use core::fmt::Write;
@@ -104,8 +105,27 @@ pub extern "C" fn handle_trap(mcause: u32, mut mepc: u32) -> u32 {
             //println!("Environment call from S-mode");
         }
         (0, 11) => {
-            println!("Environment call from M-mode");
+            let mut arg: u32;
+            let mut syscall: sys::table::SyscallTable;
+            unsafe {
+                asm!("mv $0, t0" : "=r"(syscall) ::: "volatile");
+                asm!("mv $0, t1" : "=r"(arg) ::: "volatile");
+            }
+
+            use sys::table::SyscallTable;
+            match syscall {
+                SyscallTable::EXIT => {
+                  println!("calling _exit");
+                  sys::exit::_exit(arg);
+                  unsafe { (*GLOBAL_SCHED).run(mepc); }
+                },
+                _ => {
+                    println!("Unimplemented, panic-ing");
+                    panic!();
+                },
+            };
         }
+        /*
         (0, 12) => {
             println!("Instruction page fault");
         }
