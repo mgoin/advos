@@ -2,7 +2,7 @@ use crate::global_constants::{NUM_CPU_REGISTERS, PROC_ALLOC_SIZE};
 use crate::memman::MemManager;
 
 extern "C" {
-    static mut GLOBAL_CTX: [u32;32];
+    static mut GLOBAL_CTX: [u32; 32];
 }
 
 // TODO: Probably need to add some more states here for better granularity
@@ -20,10 +20,12 @@ impl core::fmt::Display for ProcessState {
     fn fmt(&self, f: &mut core::fmt::Formatter) -> core::fmt::Result {
         let width = f.width().unwrap();
         match self {
-            ProcessState::None => write!(f, "{:>w$}", "None", w=width),
-            ProcessState::Running => write!(f, "{:>w$}", "Running", w=width),
-            ProcessState::Sleeping => write!(f, "{:>w$}", "Sleeping", w=width),
-            ProcessState::Exited => write!(f, "{:>w$}", "Exited", w=width),
+            ProcessState::None => write!(f, "{:>w$}", "None", w = width),
+            ProcessState::Running => write!(f, "{:>w$}", "Running", w = width),
+            ProcessState::Sleeping => {
+                write!(f, "{:>w$}", "Sleeping", w = width)
+            }
+            ProcessState::Exited => write!(f, "{:>w$}", "Exited", w = width),
         }
     }
 }
@@ -64,19 +66,24 @@ impl ProcessControlBlock {
                               program_counter: start_func,
                               start_fn: start_func,
                               end_fn: end_func,
-                              stack_end: MemManager::kmalloc(PROC_ALLOC_SIZE).unwrap() as *const u32,
-                              stack_start: core::ptr::null_mut(),
-        }
+                              stack_end:
+                                  MemManager::kmalloc(PROC_ALLOC_SIZE).unwrap()
+                                  as *const u32,
+                              stack_start: core::ptr::null_mut() }
     }
 
-    pub fn init_new(pid: usize, start_func: u32, end_func: u32) -> ProcessControlBlock {
+    pub fn init_new(pid: usize,
+                    start_func: u32,
+                    end_func: u32)
+                    -> ProcessControlBlock {
         let mut pcb = ProcessControlBlock::new(pid, start_func, end_func);
         unsafe {
             // Set the stack pointer to be the bottom of the allocated stack
             // region
             pcb.stack_start = pcb.stack_end.add(PROC_ALLOC_SIZE) as *mut u32;
             pcb.registers[RETURN_ADDRESS_REGISTER_OFFSET] = pcb.end_fn;
-            pcb.registers[STACK_POINTER_REGISTER_OFFSET] = pcb.stack_start as u32;
+            pcb.registers[STACK_POINTER_REGISTER_OFFSET] =
+                pcb.stack_start as u32;
         }
 
         pcb
@@ -114,7 +121,7 @@ impl ProcessControlBlock {
 impl Drop for ProcessControlBlock {
     fn drop(&mut self) {
         if !self.stack_end.is_null() {
-          MemManager::kfree(self.stack_end as u32).unwrap();
+            MemManager::kfree(self.stack_end as u32).unwrap();
         }
     }
 }
@@ -123,16 +130,14 @@ impl Drop for ProcessControlBlock {
 // for the initial Scheduler process during initialization.
 impl Default for ProcessControlBlock {
     fn default() -> Self {
-        ProcessControlBlock {
-            state: ProcessState::Running,
-            pid: 0,
-            start_time: 0,
-            registers: [0; NUM_CPU_REGISTERS],
-            program_counter: 0,
-            start_fn: 0,
-            end_fn: crate::scheduler::recover as u32,
-            stack_end: core::ptr::null(),
-            stack_start: core::ptr::null_mut(),
-        }
+        ProcessControlBlock { state: ProcessState::Running,
+                              pid: 0,
+                              start_time: 0,
+                              registers: [0; NUM_CPU_REGISTERS],
+                              program_counter: 0,
+                              start_fn: 0,
+                              end_fn: crate::scheduler::recover as u32,
+                              stack_end: core::ptr::null(),
+                              stack_start: core::ptr::null_mut() }
     }
 }

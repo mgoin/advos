@@ -1,8 +1,8 @@
-use core::fmt::Write;
 use crate::console::Console;
 use crate::global_constants::MAX_PROC_COUNT;
-use crate::{print, println};
 use crate::utils::heapvec::HeapVec;
+use crate::{print, println};
+use core::fmt::Write;
 use pcb::{ProcessControlBlock, ProcessState};
 
 pub mod pcb;
@@ -67,11 +67,14 @@ impl Scheduler {
         // so that each process gets some amount of time greater than just a few
         // clock ticks, if the currently running process hasn't had enough time,
         // just return without doing anything
-        if current_time - p_list[self.current_index].start_time > TIME_QUANTUM {
-            Scheduler::do_scheduler(self, mepc)
-        }
-        else {
-            mepc
+        unsafe {
+            if current_time - (*self.processes)[self.current_index].start_time >
+               TIME_QUANTUM
+            {
+                Scheduler::do_scheduler(self, mepc)
+            } else {
+                mepc
+            }
         }
     }
 
@@ -118,9 +121,15 @@ impl Scheduler {
         }
 
         println!("current pid: {}", self.current_index);
-        println!("{PID:>width$} {STATE:>width$}", PID="PID", STATE="STATE", width=15);
+        println!("{PID:>width$} {STATE:>width$}",
+                 PID = "PID",
+                 STATE = "STATE",
+                 width = 15);
         for p in p_list.iter() {
-            println!("{pid:>width$} {state:>width$}", pid=p.pid, state=p.state, width=15);
+            println!("{pid:>width$} {state:>width$}",
+                     pid = p.pid,
+                     state = p.state,
+                     width = 15);
         }
     }
 
@@ -132,7 +141,9 @@ impl Scheduler {
         }
 
         let mut i = (scheduler.current_index + 1) % p_list.size();
-        while i != scheduler.current_index && p_list[i].state != ProcessState::Running {
+        while i != scheduler.current_index &&
+              p_list[i].state != ProcessState::Running
+        {
             i = (i + 1) % p_list.size();
         }
         let new_index = i;

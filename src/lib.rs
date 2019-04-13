@@ -359,6 +359,8 @@ fn main() {
 
     // Main loop doesn't return, simply wait for interrupt
     loop {
-        unsafe { asm!("wfi" :::: "volatile"); }
+        unsafe {
+            asm!("wfi" :::: "volatile");
+        }
     }
 }
