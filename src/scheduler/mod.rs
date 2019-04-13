@@ -102,31 +102,6 @@ impl Scheduler {
         Ok(pid)
     }
 
-    // Deallocate processes that have exited that are still in the process list
-    // TODO: Actually deallocate these
-    pub fn delete_proc(&mut self, pid: u32) {
-        let p_list: &mut HeapVec<ProcessControlBlock>;
-        unsafe {
-            p_list = self.processes.as_mut().unwrap();
-        }
-
-        let ind: usize = if pid == 0 {
-            self.current_index
-        }
-        else {
-            pid as usize
-        };
-
-        p_list[ind].state = ProcessState::Exited;
-
-        // If the process is at the end of the process list, we can remove it in
-        // constant time, so we'll simply deallocate it here. Otherwise, we'll
-        // just mark it as exited and overwrite when a new process is created.
-        if ind == p_list.size() {
-            core::mem::drop(p_list.pop().unwrap());
-        }
-    }
-
     pub fn get_current_proc(&mut self) -> &mut ProcessControlBlock {
         let p_list: &mut HeapVec<ProcessControlBlock>;
         unsafe { p_list = self.processes.as_mut().unwrap(); }
