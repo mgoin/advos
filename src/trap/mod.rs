@@ -104,6 +104,7 @@ pub extern "C" fn handle_trap(mcause: u32, mut mepc: u32) -> u32 {
         (0, 9) => {
             //println!("Environment call from S-mode");
         }
+        */
         (0, 11) => {
             let mut arg: u32;
             let mut syscall: sys::table::SyscallTable;
